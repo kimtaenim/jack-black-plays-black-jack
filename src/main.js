@@ -366,6 +366,21 @@ $('reset-score').addEventListener('click', () => {
   render();
 });
 
+// ---------- tap a card to see it big on top of everything ----------
+const zoom = $('zoom');
+document.querySelector('.table').addEventListener('click', (e) => {
+  const card = e.target.closest('.card');
+  if (!card) return;
+  const big = card.cloneNode(true);
+  big.style.marginLeft = '';
+  zoom.replaceChildren(big);
+  zoom.hidden = false;
+});
+zoom.addEventListener('click', () => (zoom.hidden = true));
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') zoom.hidden = true;
+});
+
 // ---------- disclaimer ----------
 $('show-disclaimer').addEventListener('click', () => els.disclaimer.showModal());
 els.disclaimer.addEventListener('close', () => store.set(DISCLAIMER_KEY, '1'));
