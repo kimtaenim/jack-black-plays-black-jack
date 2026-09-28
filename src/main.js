@@ -246,7 +246,7 @@ function render() {
   const hand = document.createElement('div');
   hand.className = 'hand';
   hand.append(...(idle ? [cardEl(null, true), cardEl(null, true)] : h.cards.map((c) => cardEl(c))));
-  wrap.append(title, hand);
+  wrap.append(hand, title); // label under the cards — the box overlaps their top edge
   els.playerHands.replaceChildren(wrap);
 
   renderScore();

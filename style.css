@@ -283,6 +283,7 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  padding-top: 4px;
 }
 /* the player's cards are as big as the remaining space allows */
 .player-area .hands { --card-w: min(62cqw, (100cqh - 26px) / 1.5, 300px); }
@@ -296,7 +297,7 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
   color: var(--muted);
   text-align: center;
 }
-.player-hand h3 { font-size: 0.85rem; color: var(--gold-hi); }
+.player-hand h3 { font-size: 0.85rem; color: var(--gold-hi); margin: 6px 0 0; }
 .total {
   display: inline-block;
   min-width: 1.8em;
@@ -346,11 +347,13 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
 .felt-print b { color: var(--gold); margin: 0 0.4em; }
 
 /* ---------- floating box over the cards: start / "one more?" / result ---------- */
+/* zero-height-ish gap between the hands; the box is centred on it and spills over both */
+.mid { position: relative; flex: none; height: 64px; }
 .panel {
   position: absolute;
   left: 50%;
-  bottom: 12px;
-  translate: -50% 0;
+  top: 50%;
+  translate: -50% -58%; /* a little more over the dealer's cards than over mine */
   z-index: 6;
   width: min(92%, 420px);
   isolation: isolate;
@@ -374,7 +377,7 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
     0 8px 20px rgba(0, 0, 0, 0.6);
   animation: panel-in 0.25s ease-out;
 }
-@keyframes panel-in { from { opacity: 0; transform: translateY(24px) scale(0.92); } to { opacity: 1; transform: none; } }
+@keyframes panel-in { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: none; } }
 .panel .ask {
   margin: 0;
   font-weight: 900;
