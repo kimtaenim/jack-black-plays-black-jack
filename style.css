@@ -1,6 +1,7 @@
-/* Loud vintage-casino look (red velvet, gold, marquee bulbs, spotlights).
-   Layout priority: the player's cards are big; dealer cards small; the top strip is tiny.
-   Everything fits one phone screen — no page scroll. */
+/* Loud vintage-theatre casino (after the reference poster): crumpled red velvet, gold, marquee
+   bulbs, black stage. Frames are kept to a minimum — pieces sit on the stage and blend in
+   through light, shadow and texture rather than outlines.
+   Layout: tiny top, small dealer strip, big player cards, everything on one phone screen. */
 :root {
   --velvet: #9c1119;
   --velvet-dark: #3d0407;
@@ -19,7 +20,7 @@
   --win: #7dff9b;
   --lose: #ff7a70;
   --gold-grad: linear-gradient(180deg, var(--gold-hi) 0%, var(--gold) 35%, var(--gold-deep) 60%, #ffe089 100%);
-  --curtain-w: clamp(8px, 5vw, 120px);
+  --curtain-w: clamp(12px, 5vw, 120px);
 
   /* dealer cards are small; player cards take whatever height is left (see .player-area).
      Both stand upright at 2:3 to match the generated card art. */
@@ -46,31 +47,86 @@ body {
   margin: 0;
   font-family: var(--sans);
   color: var(--ink);
-  background:
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 200, 90, 0.28), transparent 70%),
-    radial-gradient(ellipse at 50% 60%, #3a0a0c 0%, #140204 70%);
   overflow: hidden;
+  /* black back wall with a faint gold damask and a warm glow from above */
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255, 205, 110, 0.3), transparent 70%),
+    radial-gradient(circle at 50% 50%, rgba(242, 198, 90, 0.07) 0 2px, transparent 3px) 0 0 / 22px 22px,
+    radial-gradient(ellipse at 50% 55%, #1d0a08 0%, #070102 75%);
 }
 button { font: inherit; cursor: pointer; touch-action: manipulation; }
 button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
 [hidden] { display: none !important; }
 
 /* ---------- stage dressing ---------- */
+/* crumpled velvet: irregular folds, diagonal creases, pinched at the tie-back */
 .curtain {
   position: fixed;
   top: 0;
   bottom: 0;
-  width: var(--curtain-w);
   z-index: 0;
   pointer-events: none;
+  width: max(var(--curtain-w), (100vw - 860px) / 2);
   background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.5), transparent 30%, transparent 70%, rgba(0, 0, 0, 0.5)),
+    radial-gradient(ellipse 120% 7% at 50% 44%, rgba(0, 0, 0, 0.55), transparent 70%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.6), transparent 22%, transparent 78%, rgba(0, 0, 0, 0.6)),
+    repeating-linear-gradient(103deg, transparent 0 19px, rgba(255, 110, 110, 0.14) 21px, transparent 24px 41px),
+    repeating-linear-gradient(79deg, transparent 0 27px, rgba(0, 0, 0, 0.28) 30px, transparent 34px 57px),
+    repeating-linear-gradient(94deg, transparent 0 13px, rgba(255, 140, 140, 0.12) 14px, transparent 16px 29px),
     repeating-linear-gradient(90deg,
-      var(--velvet-dark) 0, var(--velvet) 12%, var(--velvet-light) 20%, var(--velvet) 28%, var(--velvet-dark) 40%);
-  background-size: 100% 100%, 40px 100%;
+      #230103 0, #4a0508 5%, #8a0f16 11%, #c4222a 16%, #ff5a5a 17.5%, #b81c24 20%, #6d0a10 27%,
+      #2c0204 33%, #7a0d13 40%, #d2303a 45%, #9c141b 50%, #3a0306 58%, #8e1017 67%, #e0414a 71%,
+      #a3161d 75%, #480509 84%, #230103 100%);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 52px 100%;
 }
-.curtain.left { left: 0; border-right: 2px solid var(--gold); }
-.curtain.right { right: 0; border-left: 2px solid var(--gold); }
+.curtain.left { left: 0; box-shadow: inset 0 -60px 60px rgba(0, 0, 0, 0.55), 10px 0 24px rgba(0, 0, 0, 0.7); }
+.curtain.right { right: 0; box-shadow: inset 0 -60px 60px rgba(0, 0, 0, 0.55), -10px 0 24px rgba(0, 0, 0, 0.7); }
+.curtain::before { /* gold rope tie-back */
+  content: "";
+  position: absolute;
+  top: 44%;
+  left: 0;
+  right: 0;
+  height: 7px;
+  background: repeating-linear-gradient(60deg, var(--gold-hi) 0 3px, var(--gold-deep) 3px 6px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+}
+.curtain::after { /* tassel */
+  content: "";
+  position: absolute;
+  top: calc(44% + 4px);
+  width: 12px;
+  height: 34px;
+  border-radius: 6px 6px 2px 2px;
+  background:
+    radial-gradient(circle at 50% 18%, var(--gold-hi) 0 3px, var(--gold) 4px 5px, transparent 6px),
+    repeating-linear-gradient(90deg, var(--gold) 0 2px, var(--gold-deep) 2px 3px) 0 11px / 100% 23px no-repeat;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.7));
+}
+.curtain.left::after { right: -3px; }
+.curtain.right::after { left: -3px; }
+
+/* swag valance with gold fringe across the top */
+.valance {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 16px;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 52% 100% at 50% 0%, var(--velvet) 0%, var(--velvet-light) 35%, var(--velvet) 60%, var(--velvet-dark) 76%, transparent 78%) 0 0 / 110px 16px repeat-x,
+    linear-gradient(180deg, #2a0204, var(--velvet)) 0 0 / 100% 5px no-repeat;
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.6));
+}
+.valance::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 -2px;
+  background:
+    radial-gradient(ellipse 52% 100% at 50% 0%, transparent 0 75%, var(--gold-hi) 76%, var(--gold) 80%, var(--gold-deep) 86%, transparent 88%) 0 0 / 110px 16px repeat-x;
+}
 
 .spotlights {
   position: fixed;
@@ -96,31 +152,29 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 6px 6px calc(4px + env(safe-area-inset-bottom));
+  padding: 16px 6px calc(4px + env(safe-area-inset-bottom));
 }
 
-/* ---------- tiny top strip: one-line marquee title ---------- */
+/* ---------- title: floats on the stage, lit by a string of bulbs (no frame) ---------- */
 .topbar {
   position: relative;
   flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 12px 11px;
   min-height: 54px;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #2a0708, #120203);
-  border: 2px solid var(--gold);
-  box-shadow: 0 0 14px rgba(242, 198, 90, 0.45), inset 0 0 12px rgba(0, 0, 0, 0.8);
+  padding: 10px 8px 11px;
+  background: radial-gradient(ellipse 60% 70% at 50% 50%, rgba(0, 0, 0, 0.75), transparent 75%);
 }
-/* chasing marquee bulbs along the top and bottom edges */
 .bulbs {
   position: absolute;
-  inset: 2px 6px;
+  inset: 2px 10%;
   pointer-events: none;
   background:
     radial-gradient(circle, #fff6c8 0 1.6px, #ffb640 2.4px, transparent 3.4px) 0 0 / 14px 6px repeat-x,
     radial-gradient(circle, #fff6c8 0 1.6px, #ffb640 2.4px, transparent 3.4px) 7px 100% / 14px 6px repeat-x;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+  mask: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
   animation: chase 0.6s steps(2) infinite;
   filter: drop-shadow(0 0 3px #ffcf5a);
 }
@@ -131,11 +185,11 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
   align-items: baseline;
   gap: 0.35em;
   white-space: nowrap;
-  letter-spacing: -0.01em;
   font-family: var(--display);
   font-weight: 400;
   font-size: clamp(0.8rem, 4.25vw, 2.1rem);
   line-height: 1;
+  letter-spacing: -0.01em;
   text-transform: uppercase;
 }
 .title .gold {
@@ -144,49 +198,60 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(1.5px 1.5px 0 #7a0a10);
+  filter:
+    drop-shadow(1px 0 0 #6b0a0f) drop-shadow(-1px 0 0 #6b0a0f)
+    drop-shadow(0 -1px 0 #6b0a0f) drop-shadow(0 2px 0 #3d0407);
   animation: shimmer 3s linear infinite;
 }
 @keyframes shimmer { to { background-position: -200% 0; } }
+.title .ivory {
+  color: #fff6e2;
+  text-shadow:
+    1px 1px 0 #b3121b, -1px -1px 0 #b3121b, 1px -1px 0 #b3121b, -1px 1px 0 #b3121b,
+    0 3px 0 #3d0407, 0 0 8px rgba(255, 230, 170, 0.5);
+}
 .title i {
   font-family: var(--serif);
   font-style: italic;
   font-weight: 900;
   font-size: 0.5em;
   letter-spacing: 0.08em;
-  color: var(--velvet-light);
-  text-shadow: 0 0 6px rgba(255, 60, 60, 0.7);
-}
-.info {
-  position: absolute;
-  right: 5px;
-  top: 50%;
-  translate: 0 -50%;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 1.5px solid var(--gold);
-  background: #1b0405;
   color: var(--gold);
+  text-shadow: 0 0 6px rgba(242, 198, 90, 0.8);
+}
+.title .orn {
   font-family: var(--serif);
   font-weight: 900;
-  font-style: italic;
-  font-size: 0.8rem;
-  line-height: 1;
+  font-size: 0.7em;
+  color: var(--gold);
+  text-shadow: 0 0 6px rgba(242, 198, 90, 0.7);
 }
+@media (max-width: 420px) { .title .orn { display: none; } }
 
-/* ---------- small dealer banner ---------- */
+/* generated banner art replaces the CSS title when present */
+.title-art {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: clamp(64px, 19vw, 130px);
+  margin: 0 auto;
+  object-fit: cover;
+  -webkit-mask: radial-gradient(ellipse 55% 60% at 50% 50%, #000 70%, transparent 100%);
+  mask: radial-gradient(ellipse 55% 60% at 50% 50%, #000 70%, transparent 100%);
+}
+.topbar.has-art { padding: 0; min-height: 0; background: none; }
+.topbar.has-art .title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.topbar.has-art .bulbs { display: none; }
+
+/* ---------- dealer strip: portrait + score, no box ---------- */
 .dealer-banner {
   flex: none;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 6px 4px 4px;
-  border-radius: 40px 14px 14px 40px;
-  border: 1.5px solid var(--gold);
-  background:
-    linear-gradient(90deg, rgba(212, 42, 49, 0.55), rgba(61, 4, 7, 0.9) 40%, #120203);
-  box-shadow: 0 0 12px rgba(212, 42, 49, 0.5);
+  gap: 10px;
+  padding: 2px 6px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3) 70%, transparent);
+  border-radius: 40px 12px 12px 40px;
 }
 .portrait {
   position: relative;
@@ -194,18 +259,10 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
   width: 54px;
   height: 54px;
   border-radius: 50%;
-  border: 2px solid var(--gold);
-  box-shadow: 0 0 0 2px #120203, 0 0 10px rgba(242, 198, 90, 0.7);
   background: #2a1510;
+  box-shadow: 0 0 0 2px var(--gold), 0 0 14px rgba(242, 198, 90, 0.6);
 }
-.portrait img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  object-position: 50% 10%;
-  display: block;
-}
+.portrait img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; object-position: 50% 10%; display: block; }
 .portrait.pop img { animation: bob 0.35s ease-out; }
 @keyframes bob { 40% { transform: scale(1.12) rotate(-4deg); } }
 /* expression badge (only while the generated expression images don't exist yet) */
@@ -219,61 +276,43 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
 }
 .mood:empty { display: none; }
 
-/* scoreboard on the right side of the banner */
-.scoreboard { flex: 1; min-width: 0; display: flex; gap: 4px; }
+.scoreboard { flex: 1; min-width: 0; display: flex; }
 .score {
   flex: 1 1 0;
   min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 3px 2px;
-  border-radius: 10px;
-  border: 1.5px solid var(--gold-deep);
-  background: rgba(0, 0, 0, 0.5);
+  padding: 2px;
 }
-.score span { font-size: 0.6rem; color: var(--muted); white-space: nowrap; }
-.score strong { font-family: var(--serif); font-size: 1.2rem; line-height: 1.05; }
+.score + .score { background: linear-gradient(rgba(242, 198, 90, 0.35), rgba(242, 198, 90, 0.35)) 0 20% / 1px 60% no-repeat; }
+.score span { font-size: 0.6rem; color: var(--muted); white-space: nowrap; letter-spacing: 0.04em; }
+.score strong { font-family: var(--serif); font-size: 1.3rem; line-height: 1.05; }
 .score.bj strong { color: var(--gold); text-shadow: 0 0 8px rgba(242, 198, 90, 0.6); }
 .score.win strong { color: var(--win); }
 .score.lose strong { color: var(--lose); }
-.score.rate strong { color: var(--ink); font-size: 1.05rem; }
+.score.rate strong { color: var(--ink); font-size: 1.1rem; }
 
-/* ---------- table: takes all remaining height ---------- */
+/* ---------- table: one gold rail around muted felt with printed gold rings ---------- */
 .table {
   position: relative;
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 6px 8px 10px;
+  padding: 6px 8px 8px;
   border-radius: 26px;
-  border: 7px solid transparent;
+  border: 5px solid transparent;
   background:
-    radial-gradient(ellipse at 50% 55%, var(--felt) 0%, var(--felt-dark) 85%) padding-box,
+    radial-gradient(ellipse 95% 60% at 50% 108%, transparent 0 60%, rgba(242, 198, 90, 0.4) 60.4% 61%, transparent 61.4% 70%, rgba(242, 198, 90, 0.25) 70.3% 70.8%, transparent 71.2%) padding-box,
+    radial-gradient(ellipse 95% 50% at 50% -8%, transparent 0 62%, rgba(242, 198, 90, 0.25) 62.4% 63%, transparent 63.4%) padding-box,
+    radial-gradient(ellipse at 50% 45%, #365a49 0%, var(--felt) 38%, var(--felt-dark) 92%) padding-box,
     linear-gradient(180deg, var(--gold-hi), var(--gold-deep) 35%, #6e4d17 65%, var(--gold)) border-box;
   box-shadow:
-    inset 0 0 0 2px rgba(0, 0, 0, 0.4),
-    inset 0 0 40px rgba(0, 0, 0, 0.55),
-    0 0 24px rgba(242, 198, 90, 0.35),
+    inset 0 0 40px rgba(0, 0, 0, 0.6),
+    0 0 26px rgba(242, 198, 90, 0.35),
     0 14px 30px rgba(0, 0, 0, 0.7);
 }
-/* bulbs around the rail */
-.table::before {
-  content: "";
-  position: absolute;
-  inset: -6px;
-  border-radius: 24px;
-  pointer-events: none;
-  padding: 2px;
-  background:
-    radial-gradient(circle, #fff6c8 0 1.3px, #ffb640 2px, transparent 2.8px) 0 0 / 16px 16px;
-  -webkit-mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  animation: twinkle 1.2s steps(2) infinite;
-}
-@keyframes twinkle { 50% { opacity: 0.45; } }
 
 .dealer-area { flex: none; }
 .player-area {
@@ -311,43 +350,13 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
 }
 .total:empty { display: none; }
 .player-hand .total { font-size: 1rem; }
-.result { margin-left: 4px; font-weight: 900; letter-spacing: 0.06em; }
-.result.win, .result.blackjack { color: var(--win); }
-.result.lose, .result.bust { color: var(--lose); }
-.result.push { color: var(--ink); }
 
-/* hands: cards stand upright; with 3–4 cards they overlap (JS sets the overlap to fit) */
-.hand {
-  display: flex;
-  justify-content: center;
-  min-height: calc(var(--card-w) * 1.5);
-}
-.hands { display: flex; justify-content: center; gap: 8px; }
-.player-hand {
-  flex: 1 1 0;
-  min-width: 0;
-  padding: 4px;
-  border-radius: 12px;
-  border: 2px solid transparent;
-}
+/* hands: cards stand upright; when they don't fit they overlap (JS sets the overlap) */
+.hand { display: flex; justify-content: center; min-height: calc(var(--card-w) * 1.5); }
+.hands { display: flex; justify-content: center; }
+.player-hand { flex: 1 1 0; min-width: 0; padding: 4px; }
 
-/* ---------- felt print between the hands ---------- */
-.felt-print {
-  flex: none;
-  margin: 4px 0 2px;
-  text-align: center;
-  font-family: var(--serif);
-  font-weight: 700;
-  font-size: clamp(0.5rem, 2.2vw, 0.72rem);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: rgba(242, 198, 90, 0.6);
-}
-.felt-print b { color: var(--gold); margin: 0 0.4em; }
-
-/* ---------- floating box over the cards: start / "one more?" / result ---------- */
-/* zero-height-ish gap between the hands; the box is centred on it and spills over both */
+/* ---------- the box floats between the hands, slightly over both ---------- */
 .mid { position: relative; flex: none; height: 64px; }
 .panel {
   position: absolute;
@@ -356,27 +365,26 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
   translate: -50% -58%; /* a little more over the dealer's cards than over mine */
   z-index: 6;
   width: min(92%, 420px);
-  isolation: isolate;
   min-height: 104px;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 6px;
-  padding: 8px 10px;
-  border-radius: 16px;
+  padding: 10px 12px;
+  border-radius: 18px;
   text-align: center;
   overflow: hidden;
   background:
-    radial-gradient(ellipse at 50% 0%, rgba(255, 90, 90, 0.4), transparent 70%),
-    linear-gradient(180deg, #5a0a0e, #1c0203);
-  border: 2px solid var(--gold);
+    radial-gradient(ellipse at 50% 0%, rgba(255, 110, 110, 0.35), transparent 70%),
+    repeating-linear-gradient(90deg, #4a070b 0, #6a0c11 16px, #4a070b 32px);
   box-shadow:
-    0 0 0 2px #1c0203,
-    0 0 0 4px var(--gold-deep),
-    0 0 22px rgba(242, 198, 90, 0.55),
-    0 8px 20px rgba(0, 0, 0, 0.6);
+    inset 0 1px 0 rgba(255, 220, 150, 0.45),
+    0 0 24px rgba(242, 198, 90, 0.35),
+    0 14px 28px rgba(0, 0, 0, 0.75);
   animation: panel-in 0.25s ease-out;
 }
+.panel:empty { display: none; }
 @keyframes panel-in { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: none; } }
 .panel .ask {
   margin: 0;
@@ -392,6 +400,7 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
   flex: 1 1 0;
   min-height: 52px;
   padding: 4px 10px;
+  border: 0;
   border-radius: 12px;
   font-weight: 900;
   font-size: 1.15rem;
@@ -400,8 +409,7 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--gold-hi);
-  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.35), 0 4px 10px rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.4), 0 4px 10px rgba(0, 0, 0, 0.55);
   user-select: none;
 }
 .btn small { display: block; margin-top: 2px; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; opacity: 0.9; line-height: 1; }
@@ -410,7 +418,7 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
 .btn.no { background: linear-gradient(180deg, #ff6b6b, #a3101a); color: #fff; }
 .btn.gold { background: var(--gold-grad); color: #2a1508; }
 
-/* result: rotating rays behind a big outcome, then scoreboard + play-again side by side */
+/* result: rotating light rays behind a big outcome */
 .panel.result-panel::before {
   content: "";
   position: absolute;
@@ -445,8 +453,6 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
 .outcome.even { color: var(--ink); text-shadow: 2px 2px 0 #3a0a0c; }
 @keyframes throb { to { transform: scale(1.06); } }
 
-.reset { background: none; border: 1px solid var(--gold-deep); border-radius: 8px; color: var(--gold); padding: 6px 14px; font-size: 0.8rem; }
-
 /* ---------- cards ---------- */
 .card {
   position: relative;
@@ -471,7 +477,6 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
   overflow: hidden;
   border-radius: 3px;
   border: 2px solid var(--gold-deep);
-  box-shadow: 0 0 0 1px var(--gold-hi);
   background: var(--ivory);
   display: flex;
   flex-direction: column;
@@ -554,8 +559,6 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
 .card.back {
   overflow: hidden;
   border: calc(var(--card-w) * 0.04) solid var(--ivory);
-  outline: 1px solid var(--gold-deep);
-  outline-offset: calc(var(--card-w) * -0.08);
   color: var(--gold);
   background:
     radial-gradient(circle, var(--gold) 1.2px, transparent 1.8px) 0 0 / 10px 10px,
@@ -566,26 +569,53 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
 .card.back .pip.medallion { --pip: calc(var(--card-w) * 0.5); left: 50%; top: 50%; }
 .card.back .art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
-/* ---------- footer & dialog ---------- */
+/* ---------- footer (disclaimer link between chip stacks) & dialog ---------- */
 .foot {
   flex: none;
-  text-align: center;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
   font-size: 0.56rem;
   color: var(--muted);
-  opacity: 0.7;
   white-space: nowrap;
+}
+.foot-text {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  background: none;
+  border: 0;
+  padding: 0 0 1px;
+  color: var(--muted);
+  font-size: inherit;
+  opacity: 0.75;
+  text-decoration: underline;
+  text-decoration-color: rgba(242, 198, 90, 0.4);
 }
+.chips { flex: none; display: flex; flex-direction: column-reverse; align-items: center; }
+.chips i {
+  display: block;
+  width: 26px;
+  height: 8px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background: repeating-linear-gradient(90deg, #b3121b 0 4px, #fbf4df 4px 6px);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.35), 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+.chips i:nth-child(even) { background: repeating-linear-gradient(90deg, #151515 0 4px, #fbf4df 4px 6px); }
+.chips i:last-child { background: radial-gradient(ellipse, #fbf4df 0 30%, #b3121b 32%); }
 
 dialog {
   max-width: min(600px, calc(100vw - 32px));
-  border: 2px solid var(--gold);
-  border-radius: 14px;
-  background: linear-gradient(180deg, #2a0708, #0b0102);
+  border: 0;
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 110, 110, 0.25), transparent 60%),
+    linear-gradient(180deg, #2a0708, #0b0102);
   color: var(--ink);
   padding: 18px;
-  box-shadow: 0 0 0 5px #0b0102, 0 0 0 7px var(--gold-deep), 0 0 30px rgba(242, 198, 90, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 220, 150, 0.4), 0 0 30px rgba(242, 198, 90, 0.3), 0 20px 40px rgba(0, 0, 0, 0.8);
 }
 dialog::backdrop { background: rgba(0, 0, 0, 0.78); }
 dialog h2 { margin-top: 0; font-family: var(--serif); color: var(--gold); font-size: 1.2rem; }
@@ -595,214 +625,15 @@ dialog h2 { margin-top: 0; font-family: var(--serif); color: var(--gold); font-s
 .disclaimer-body a { color: var(--gold); }
 dialog form { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 12px; }
 dialog .btn { flex: 0 1 220px; }
+.reset { background: none; border: 0; color: var(--muted); padding: 6px 10px; font-size: 0.8rem; text-decoration: underline; }
 
 @media (min-width: 720px) {
   .portrait { width: 60px; height: 60px; }
   .score span { font-size: 0.7rem; }
-  .score strong { font-size: 1.4rem; }
-  .table { padding: 10px 16px 14px; }
+  .score strong { font-size: 1.5rem; }
+  .table { padding: 10px 16px 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; }
-}
-
-/* =====================================================================
-   Theatre dressing after the reference poster: swagged red velvet valance
-   with gold fringe, tied-back curtains with tassels, black back wall with
-   gold damask, 3D gold title, felt with gold rings, chip stacks.
-   ===================================================================== */
-body {
-  background:
-    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255, 205, 110, 0.3), transparent 70%),
-    radial-gradient(circle at 50% 50%, rgba(242, 198, 90, 0.07) 0 2px, transparent 3px) 0 0 / 22px 22px,
-    radial-gradient(ellipse at 50% 55%, #1d0a08 0%, #070102 75%);
-}
-
-/* swag valance across the top */
-.valance {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 16px;
-  z-index: 3;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 52% 100% at 50% 0%, var(--velvet) 0%, var(--velvet-light) 35%, var(--velvet) 60%, var(--velvet-dark) 76%, transparent 78%) 0 0 / 110px 16px repeat-x,
-    linear-gradient(180deg, #2a0204, var(--velvet)) 0 0 / 100% 5px no-repeat;
-  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.6));
-}
-.valance::after { /* gold fringe following the swags */
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 18px;
-  background:
-    radial-gradient(ellipse 52% 100% at 50% 0%, transparent 0 75%, var(--gold-hi) 76%, var(--gold) 80%, var(--gold-deep) 86%, transparent 88%) 0 0 / 110px 16px repeat-x;
-}
-.app { padding-top: 16px; }
-
-/* curtains: deeper folds + gold rope tie-backs with tassels */
-.curtain {
-  width: max(var(--curtain-w), 12px, (100vw - 860px) / 2);
-  background:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.55), transparent 25%, transparent 75%, rgba(0, 0, 0, 0.55)),
-    repeating-linear-gradient(90deg,
-      #2a0204 0, var(--velvet-dark) 6%, var(--velvet) 14%, var(--velvet-light) 20%, #ff4a4a 22%, var(--velvet-light) 24%, var(--velvet) 32%, var(--velvet-dark) 42%, #2a0204 50%);
-  background-size: 100% 100%, 34px 100%;
-  box-shadow: inset 0 -60px 60px rgba(0, 0, 0, 0.55);
-}
-.curtain::before { /* rope */
-  content: "";
-  position: absolute;
-  top: 44%;
-  left: 0;
-  right: 0;
-  height: 7px;
-  background: repeating-linear-gradient(60deg, var(--gold-hi) 0 3px, var(--gold-deep) 3px 6px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
-}
-.curtain::after { /* tassel */
-  content: "";
-  position: absolute;
-  top: calc(44% + 4px);
-  width: 12px;
-  height: 34px;
-  border-radius: 6px 6px 2px 2px;
-  background:
-    radial-gradient(circle at 50% 18%, var(--gold-hi) 0 3px, var(--gold) 4px 5px, transparent 6px),
-    repeating-linear-gradient(90deg, var(--gold) 0 2px, var(--gold-deep) 2px 3px) 0 11px / 100% 23px no-repeat;
-  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.7));
-}
-.curtain.left::after { right: -3px; }
-.curtain.right::after { left: -3px; }
-
-/* title plaque: black with a double gold frame, 3D gold + ivory lettering */
-.topbar {
-  background:
-    radial-gradient(ellipse at 50% 120%, rgba(242, 198, 90, 0.18), transparent 60%),
-    linear-gradient(180deg, #160506, #050001);
-  border: 2px solid var(--gold);
-  box-shadow:
-    0 0 0 2px #050001,
-    0 0 0 3.5px var(--gold-deep),
-    0 0 18px rgba(242, 198, 90, 0.5),
-    inset 0 0 14px rgba(0, 0, 0, 0.9);
-}
-.title .gold {
-  filter:
-    drop-shadow(1px 0 0 #6b0a0f) drop-shadow(-1px 0 0 #6b0a0f)
-    drop-shadow(0 -1px 0 #6b0a0f) drop-shadow(0 2px 0 #3d0407);
-}
-.title .ivory {
-  color: #fff6e2;
-  text-shadow:
-    1px 1px 0 #b3121b, -1px -1px 0 #b3121b, 1px -1px 0 #b3121b, -1px 1px 0 #b3121b,
-    0 3px 0 #3d0407, 0 0 8px rgba(255, 230, 170, 0.5);
-}
-.title i { color: var(--gold); text-shadow: 0 0 6px rgba(242, 198, 90, 0.8); }
-.title .orn {
-  font-family: var(--serif);
-  font-weight: 900;
-  font-size: 0.7em;
-  color: var(--gold);
-  text-shadow: 0 0 6px rgba(242, 198, 90, 0.7);
-}
-
-/* banner: red velvet with gold trim */
-.dealer-banner {
-  background:
-    linear-gradient(90deg, rgba(255, 90, 90, 0.25), transparent 30%),
-    repeating-linear-gradient(90deg, var(--velvet-dark) 0, var(--velvet) 18px, var(--velvet-dark) 36px);
-  border: 2px solid var(--gold);
-  box-shadow: 0 0 0 2px #1a0203, 0 0 0 3.5px var(--gold-deep), 0 0 14px rgba(212, 42, 49, 0.55);
-}
-
-/* felt: gold rings like a casino table, double gold rail */
-.table {
-  background:
-    radial-gradient(ellipse 95% 60% at 50% 108%, transparent 0 60%, rgba(242, 198, 90, 0.55) 60.4% 61%, transparent 61.4% 70%, rgba(242, 198, 90, 0.35) 70.3% 70.8%, transparent 71.2%) padding-box,
-    radial-gradient(ellipse 95% 50% at 50% -8%, transparent 0 62%, rgba(242, 198, 90, 0.35) 62.4% 63%, transparent 63.4%) padding-box,
-    radial-gradient(ellipse at 50% 45%, #365a49 0%, var(--felt) 38%, var(--felt-dark) 92%) padding-box,
-    linear-gradient(180deg, var(--gold-hi), var(--gold-deep) 35%, #6e4d17 65%, var(--gold)) border-box;
-  box-shadow:
-    inset 0 0 0 5px #13271e,
-    inset 0 0 0 7px rgba(242, 198, 90, 0.7),
-    inset 0 0 40px rgba(0, 0, 0, 0.55),
-    0 0 0 3px #1a0203,
-    0 0 26px rgba(242, 198, 90, 0.45),
-    0 14px 30px rgba(0, 0, 0, 0.7);
-}
-
-/* footer with chip stacks */
-.foot {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 8px;
-  opacity: 1;
-}
-.foot-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; opacity: 0.7; padding-bottom: 1px; }
-.chips { flex: none; display: flex; flex-direction: column-reverse; align-items: center; }
-.chips i {
-  display: block;
-  width: 26px;
-  height: 8px;
-  margin-top: -4px;
-  border-radius: 50%;
-  background:
-    repeating-linear-gradient(90deg, #b3121b 0 4px, #fbf4df 4px 6px);
-  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.35), 0 1px 1px rgba(0, 0, 0, 0.6);
-}
-.chips i:nth-child(even) { background: repeating-linear-gradient(90deg, #151515 0 4px, #fbf4df 4px 6px); }
-.chips i:last-child { background: radial-gradient(ellipse, #fbf4df 0 30%, #b3121b 32%); }
-
-/* gold corner flourishes on the prompt / result panel */
-.panel {
-  background:
-    radial-gradient(circle at 10px 10px, var(--gold) 0 2px, transparent 3px),
-    radial-gradient(circle at calc(100% - 10px) 10px, var(--gold) 0 2px, transparent 3px),
-    radial-gradient(circle at 10px calc(100% - 10px), var(--gold) 0 2px, transparent 3px),
-    radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), var(--gold) 0 2px, transparent 3px),
-    radial-gradient(ellipse at 50% 0%, rgba(255, 90, 90, 0.4), transparent 70%),
-    repeating-linear-gradient(90deg, #4a070b 0, #6a0c11 16px, #4a070b 32px);
-}
-
-/* ---------- title: generated banner art when available, otherwise the CSS plaque ---------- */
-.title-art {
-  display: block;
-  width: 100%;
-  max-width: 560px;
-  height: clamp(64px, 19vw, 130px);
-  margin: 0 auto;
-  object-fit: cover;
-  border-radius: 8px;
-}
-.topbar.has-art { padding: 3px; min-height: 0; }
-.topbar.has-art .title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-.topbar.has-art .bulbs { display: none; }
-@media (max-width: 420px) { .title .orn { display: none; } }
-
-/* disclaimer link lives in the footer */
-.foot-text { background: none; border: 0; padding: 0 0 1px; color: var(--muted); font-size: inherit; text-decoration: underline; text-decoration-color: rgba(242, 198, 90, 0.4); }
-
-/* ---------- crumpled velvet: irregular folds, diagonal creases, pinched at the tie-back ---------- */
-.curtain {
-  background:
-    radial-gradient(ellipse 120% 7% at 50% 44%, rgba(0, 0, 0, 0.55), transparent 70%),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.6), transparent 22%, transparent 78%, rgba(0, 0, 0, 0.6)),
-    repeating-linear-gradient(103deg, transparent 0 19px, rgba(255, 110, 110, 0.14) 21px, transparent 24px 41px),
-    repeating-linear-gradient(79deg, transparent 0 27px, rgba(0, 0, 0, 0.28) 30px, transparent 34px 57px),
-    repeating-linear-gradient(94deg, transparent 0 13px, rgba(255, 140, 140, 0.12) 14px, transparent 16px 29px),
-    repeating-linear-gradient(90deg,
-      #230103 0, #4a0508 5%, #8a0f16 11%, #c4222a 16%, #ff5a5a 17.5%, #b81c24 20%, #6d0a10 27%,
-      #2c0204 33%, #7a0d13 40%, #d2303a 45%, #9c141b 50%, #3a0306 58%, #8e1017 67%, #e0414a 71%,
-      #a3161d 75%, #480509 84%, #230103 100%);
-  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 52px 100%;
-}
-.valance {
-  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.6)) saturate(1.1);
 }
