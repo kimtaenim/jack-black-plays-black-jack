@@ -11,7 +11,7 @@
  *
  *   ID          용도
  *   JS … KC     J·Q·K 12장 (카드 한 장 전체를 그림, 1024x1536)
- *   DEALER      딜러 배너 왼쪽 초상 (검은 양복, 1024x1024)
+ *   DEALER_*    딜러 배너 왼쪽 초상 — 목각인형 스타일, 표정 7가지 (IDLE, DEAL, SHOCK, SAD, LAUGH, SMUG, SHRUG)
  *   FACE        숫자 카드의 무늬 한두 개에 들어가는 얼굴 (1024x1024)
  *   BACK        카드 뒷면 (1024x1536)
  *
@@ -60,7 +60,7 @@ const opt = (name, dflt) => {
 };
 
 const OPTS = {
-  only: (opt('only', '').toUpperCase().match(/[A-Z]+/g) || []),
+  only: (opt('only', '').toUpperCase().match(/[A-Z_]+/g) || []),
   force: flag('force'),
   model: opt('model', process.env.CARD_IMAGE_MODEL || 'gpt-image-2'),
   quality: opt('quality', 'medium'),

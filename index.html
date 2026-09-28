@@ -25,17 +25,22 @@
       <button class="info" id="show-disclaimer" aria-label="Disclaimer">i</button>
     </header>
 
-    <section class="dealer-banner" aria-label="Dealer Jack">
-      <div class="portrait"><img id="dealer-img" src="assets/dealer.svg" alt="Dealer Jack in a black suit" /></div>
-      <div class="dialogue" role="status" aria-live="polite">
-        <p class="quote-en" id="quote-en"></p>
-        <p class="quote-ko"><span id="quote-ko"></span> <span class="quote-src" id="quote-src"></span></p>
+    <section class="dealer-banner" aria-label="Dealer and score">
+      <div class="portrait">
+        <img id="dealer-img" src="assets/dealer.svg" alt="Dealer" />
+        <span class="mood" id="mood" aria-hidden="true"></span>
+      </div>
+      <div class="scoreboard" aria-label="Score" aria-live="polite">
+        <div class="score bj"><span>블랙잭 승</span><strong id="score-bj">0</strong></div>
+        <div class="score win"><span>승</span><strong id="score-win">0</strong></div>
+        <div class="score lose"><span>패</span><strong id="score-lose">0</strong></div>
+        <div class="score rate"><span>승률</span><strong id="score-rate">–</strong></div>
       </div>
     </section>
 
     <main class="table">
       <section class="dealer-area" aria-label="Dealer">
-        <h2>Dealer Jack <span class="total" id="dealer-total"></span></h2>
+        <h2>Dealer <span class="total" id="dealer-total"></span></h2>
         <div class="hand" id="dealer-hand"></div>
       </section>
 
@@ -61,16 +66,14 @@
         <strong>educational and portfolio purposes</strong>.
         I do not own any rights to the name or likeness of Jack Black. No copyright infringement is intended.
         This project is not affiliated with, endorsed by, or sponsored by Jack Black or his representatives.
-        All card and dealer artwork is AI-generated caricature. The dealer's lines are short, credited quotes
-        from Jack Black's films and belong to their respective rights holders. No real money is involved.
+        All card and dealer artwork is AI-generated caricature. No real money is involved.
       </p>
       <hr />
       <p>
         본 프로젝트는 <strong>교육 및 포트폴리오 목적</strong>으로 제작된 <strong>비상업적 팬메이드 패러디</strong>입니다.
         Jack Black의 이름 및 초상에 대한 어떠한 권리도 소유하지 않으며, 저작권 침해 의도가 없습니다.
         Jack Black 본인 및 관계사와 무관하며 승인·후원을 받지 않았습니다.
-        카드와 딜러 그림은 AI로 생성한 캐리커처이며, 딜러의 대사는 출연 영화의 짧은 명대사를 작품명과 함께 인용한 것으로
-        각 권리는 해당 권리자에게 있습니다. 실제 돈이 오가지 않습니다.
+        카드와 딜러 그림은 AI로 생성한 캐리커처이며, 실제 돈이 오가지 않습니다.
       </p>
       <p class="dlinks"><a href="https://github.com/kimtaenim/jack-black-plays-black-jack">GitHub</a></p>
     </div>

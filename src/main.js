@@ -1,5 +1,4 @@
 import { BlackjackGame, PHASE, handValue } from './engine.js';
-import { QUOTES } from './quotes.js';
 
 const SCORE_KEY = 'jbpbj.score.v1';
 const DISCLAIMER_KEY = 'jbpbj.disclaimer.v2';
@@ -16,7 +15,6 @@ const OUTCOME_TEXT = {
   bust: 'BUST',
 };
 
-const pick = (lines) => lines[Math.floor(Math.random() * lines.length)];
 
 // ---------- safe storage ----------
 const store = {
@@ -42,16 +40,16 @@ const artUrl = (id) => (art[id] ? `assets/cards/${art[id]}` : null);
 
 function applyArt() {
   document.documentElement.style.setProperty('--face', `url("${artUrl('FACE') ?? FALLBACK_FACE}")`);
-  els.dealerImg.src = artUrl('DEALER') ?? FALLBACK_DEALER;
 }
 
 // ---------- DOM ----------
 const $ = (id) => document.getElementById(id);
 const els = {
-  quoteEn: $('quote-en'),
-  quoteKo: $('quote-ko'),
-  quoteSrc: $('quote-src'),
-  dialogue: document.querySelector('.dialogue'),
+  mood: $('mood'),
+  scoreBj: $('score-bj'),
+  scoreWin: $('score-win'),
+  scoreLose: $('score-lose'),
+  scoreRate: $('score-rate'),
   dealerImg: $('dealer-img'),
   dealerHand: $('dealer-hand'),
   dealerTotal: $('dealer-total'),
@@ -246,6 +244,7 @@ function render() {
     }),
   );
 
+  renderScore();
   renderPanel();
   fitAll();
 }
@@ -267,14 +266,12 @@ function button(cls, label, sub, onClick) {
   return b;
 }
 
-function scoreboard() {
-  const div = document.createElement('div');
-  div.className = 'scoreboard';
-  div.innerHTML =
-    `<div class="score bj"><span>블랙잭 승</span><strong>${score.bj}</strong></div>` +
-    `<div class="score win"><span>승</span><strong>${score.win}</strong></div>` +
-    `<div class="score lose"><span>패</span><strong>${score.lose}</strong></div>`;
-  return div;
+function renderScore() {
+  els.scoreBj.textContent = score.bj;
+  els.scoreWin.textContent = score.win;
+  els.scoreLose.textContent = score.lose;
+  const played = score.bj + score.win + score.lose;
+  els.scoreRate.textContent = played ? `${Math.round(((score.bj + score.win) / played) * 100)}%` : '–';
 }
 
 function renderPanel() {
@@ -298,24 +295,35 @@ function renderPanel() {
     p.classList.add('result-panel');
     head.className = `outcome ${o.tone}`;
     head.textContent = o.big;
-    row.append(scoreboard(), button('gold', '한 판 더!', 'PLAY AGAIN', deal));
+    row.append(button('gold', '한 판 더!', 'PLAY AGAIN', deal));
   } else {
     head.className = 'ask';
-    head.innerHTML = '딜러 잭이 기다린다!<small>Ready to rock?</small>';
-    row.append(scoreboard(), button('gold', '게임 시작', 'DEAL', deal));
+    head.innerHTML = '한 판 해볼까?<small>Ready to rock?</small>';
+    row.append(button('gold', '게임 시작', 'DEAL', deal));
   }
   p.append(head, row);
 }
 
-// Dealer banner: a famous line in English + Korean, with its source.
-function say(key) {
-  const q = pick(QUOTES[key]);
-  els.quoteEn.textContent = `“${q.en}”`;
-  els.quoteKo.textContent = q.ko;
-  els.quoteSrc.textContent = `— ${q.src}`;
-  els.dialogue.classList.remove('pop');
-  void els.dialogue.offsetWidth; // restart the animation
-  els.dialogue.classList.add('pop');
+// Dealer portrait: a different expression for each moment of the game.
+// Generated images are DEALER_<MOOD> (wooden-puppet caricatures); until then the SVG dealer + an emoji badge.
+const MOODS = {
+  IDLE: '🙂', // waiting for a new game
+  DEAL: '😉', // dealing / player deciding
+  SHOCK: '😱', // player got a blackjack
+  SAD: '😭', // player won
+  LAUGH: '🤣', // dealer won
+  SMUG: '😏', // player busted
+  SHRUG: '🤷', // push
+};
+const MOOD_AFTER = { blackjack: 'SHOCK', win: 'SAD', lose: 'LAUGH', bust: 'SMUG', push: 'SHRUG' };
+
+function setMood(mood) {
+  const url = artUrl(`DEALER_${mood}`);
+  els.dealerImg.src = url ?? artUrl('DEALER_IDLE') ?? FALLBACK_DEALER;
+  els.mood.textContent = url ? '' : MOODS[mood];
+  els.dealerImg.parentElement.classList.remove('pop');
+  void els.dealerImg.offsetWidth; // restart the animation
+  els.dealerImg.parentElement.classList.add('pop');
 }
 
 function headline(results) {
@@ -337,7 +345,7 @@ function act(fn) {
     }
     if (game.phase === PHASE.SETTLED) {
       record(game.results);
-      say(headline(game.results));
+      setMood(MOOD_AFTER[headline(game.results)]);
     }
     render();
   };
@@ -345,7 +353,7 @@ function act(fn) {
 
 const deal = act(() => {
   game.deal(1);
-  say('deal');
+  setMood('DEAL');
 });
 
 let resizeTimer;
@@ -368,5 +376,5 @@ if (store.get(DISCLAIMER_KEY) !== '1') els.disclaimer.showModal();
 
 await loadArt();
 applyArt();
-say('welcome');
+setMood('IDLE');
 render();
