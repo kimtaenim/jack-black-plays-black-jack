@@ -366,13 +366,12 @@ $('reset-score').addEventListener('click', () => {
   render();
 });
 
-// ---------- tap a card to bring it to the front of its overlapping hand ----------
-document.querySelector('.table').addEventListener('click', (e) => {
+// ---------- tap one of your cards to bring it to the front (dealer cards aren't touchable) ----------
+els.playerHands.addEventListener('click', (e) => {
   const card = e.target.closest('.card');
   if (!card) return;
-  const wasFront = card.classList.contains('front');
   card.parentElement.querySelectorAll('.card.front').forEach((c) => c.classList.remove('front'));
-  if (!wasFront) card.classList.add('front'); // tap again to put it back
+  card.classList.add('front');
 });
 
 // ---------- disclaimer ----------

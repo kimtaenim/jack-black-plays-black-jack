@@ -616,7 +616,7 @@ dialog .btn { flex: 0 1 220px; }
 }
 
 /* ---------- tap a card to bring it to the front ---------- */
-.table .card { cursor: pointer; transition: transform 0.15s ease-out; }
+#player-hands .card { cursor: pointer; transition: transform 0.15s ease-out; }
 .card.front {
   z-index: 5;
   transform: translateY(-8px);
