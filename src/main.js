@@ -366,19 +366,13 @@ $('reset-score').addEventListener('click', () => {
   render();
 });
 
-// ---------- tap a card to see it big on top of everything ----------
-const zoom = $('zoom');
+// ---------- tap a card to bring it to the front of its overlapping hand ----------
 document.querySelector('.table').addEventListener('click', (e) => {
   const card = e.target.closest('.card');
   if (!card) return;
-  const big = card.cloneNode(true);
-  big.style.marginLeft = '';
-  zoom.replaceChildren(big);
-  zoom.hidden = false;
-});
-zoom.addEventListener('click', () => (zoom.hidden = true));
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') zoom.hidden = true;
+  const wasFront = card.classList.contains('front');
+  card.parentElement.querySelectorAll('.card.front').forEach((c) => c.classList.remove('front'));
+  if (!wasFront) card.classList.add('front'); // tap again to put it back
 });
 
 // ---------- disclaimer ----------

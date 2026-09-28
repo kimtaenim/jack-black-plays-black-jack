@@ -632,23 +632,10 @@ dialog .btn { flex: 0 1 220px; }
   *, *::before, *::after { animation: none !important; }
 }
 
-/* ---------- card close-up ---------- */
-.table .card { cursor: zoom-in; }
-.zoom {
-  position: fixed;
-  inset: 0;
-  z-index: 20;
-  display: grid;
-  place-items: center;
-  background: radial-gradient(ellipse at 50% 45%, rgba(40, 8, 8, 0.75), rgba(0, 0, 0, 0.9));
-  backdrop-filter: blur(3px);
-  cursor: zoom-out;
-  animation: fade 0.2s ease-out;
+/* ---------- tap a card to bring it to the front ---------- */
+.table .card { cursor: pointer; transition: transform 0.15s ease-out; }
+.card.front {
+  z-index: 5;
+  transform: translateY(-8px);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 0 18px rgba(242, 198, 90, 0.55), 0 12px 20px rgba(0, 0, 0, 0.6);
 }
-.zoom .card {
-  --card-w: min(80vw, 78dvh / 1.5, 440px);
-  box-shadow: 0 0 40px rgba(242, 198, 90, 0.35), 0 24px 50px rgba(0, 0, 0, 0.8);
-  animation: lift 0.25s ease-out;
-}
-@keyframes fade { from { opacity: 0; } }
-@keyframes lift { from { transform: scale(0.6); opacity: 0; } }
