@@ -1,11 +1,11 @@
 import { BlackjackGame, PHASE, handValue } from './engine.js';
 
-const STORAGE_KEY = 'jbpbj.bankroll';
-const DISCLAIMER_KEY = 'jbpbj.disclaimer.v1';
-const START_BANKROLL = 1000;
+const SCORE_KEY = 'jbpbj.score.v1';
+const DISCLAIMER_KEY = 'jbpbj.disclaimer.v2';
 
 const SUIT_SYMBOL = { S: '♠', H: '♥', D: '♦', C: '♣' };
-const FALLBACK_ART = { J: '🎸', Q: '🤘', K: '👉' };
+const FALLBACK_FACE = 'assets/face.svg';
+const FALLBACK_DEALER = 'assets/dealer.svg';
 
 const OUTCOME_TEXT = {
   blackjack: 'BLACKJACK!',
@@ -15,14 +15,16 @@ const OUTCOME_TEXT = {
   bust: 'BUST',
 };
 
-// Parody banter shown after each round (original lines, not real quotes).
+// Dealer banter (original parody lines, not real quotes).
 const BANTER = {
-  blackjack: ['🔥 BLACKJACK! 이건 록의 신이 내려준 패다!', '🤘 21! 기타 솔로 한 번 가자!'],
-  win: ['🎸 이겼다! 앰프 볼륨 11로!', '🤘 Rock ON! 딜러를 박살냈어!'],
-  push: ['😐 무승부… 앙코르 한 판 더?', '🥁 비겼다. 드럼 롤은 다음 기회에.'],
-  lose: ['😭 졌다… 발라드 모드로 전환.', '💔 딜러가 이겼어. 하지만 록은 멈추지 않아!'],
-  bust: ['💥 버스트! 앰프가 터졌다!', '🙈 22 이상… 너무 세게 쳤어.'],
+  deal: ['자, 카드 나간다! 🎸', '록 스피릿을 믿어! 히트? 스탠드?', '내 눈썹을 봐. 떨리지?'],
+  blackjack: ['🔥 블랙잭?! 이건 록의 신이 내려준 패다!', '🤘 21! 딜러인 나도 기타 솔로 칠 뻔했어!'],
+  win: ['😱 네가 이겼어… 앰프 볼륨 11로 올려!', '🎸 좋아, 인정! 한 판 더?'],
+  push: ['😐 무승부. 앙코르 한 판 더?', '🥁 비겼다. 드럼 롤은 다음 기회에.'],
+  lose: ['😎 딜러 잭의 승리! ROCK ON!', '🤘 하우스는 언제나 로큰롤이지!'],
+  bust: ['💥 버스트! 앰프가 터졌다!', '🙈 22 이상… 너무 세게 쳤어!'],
 };
+const pick = (lines) => lines[Math.floor(Math.random() * lines.length)];
 
 // ---------- safe storage ----------
 const store = {
@@ -34,7 +36,7 @@ const store = {
   },
 };
 
-// ---------- card art manifest ----------
+// ---------- artwork (generated images if present, else built-in SVG) ----------
 let art = {};
 async function loadArt() {
   try {
@@ -46,25 +48,30 @@ async function loadArt() {
 }
 const artUrl = (id) => (art[id] ? `assets/cards/${art[id]}` : null);
 
+function applyArt() {
+  document.documentElement.style.setProperty('--face', `url("${artUrl('FACE') ?? FALLBACK_FACE}")`);
+  els.dealerImg.src = artUrl('DEALER') ?? FALLBACK_DEALER;
+}
+
 // ---------- DOM ----------
 const $ = (id) => document.getElementById(id);
 const els = {
-  bankroll: $('bankroll'),
-  bet: $('bet'),
   banner: $('banner'),
+  dealerImg: $('dealer-img'),
   dealerHand: $('dealer-hand'),
   dealerTotal: $('dealer-total'),
   playerHands: $('player-hands'),
   deal: $('deal'),
   hit: $('hit'),
   stand: $('stand'),
-  double: $('double'),
   split: $('split'),
-  clearBet: $('clear-bet'),
+  scoreBj: $('score-bj'),
+  scoreWin: $('score-win'),
+  scoreLose: $('score-lose'),
   disclaimer: $('disclaimer'),
 };
 
-// Classic pip positions [x%, y%] inside the card frame; pips below the middle are flipped.
+// Classic pip positions [x%, y%] inside the card; pips below the middle are flipped.
 const PIPS = {
   A: [[50, 50]],
   2: [[50, 16], [50, 84]],
@@ -78,6 +85,21 @@ const PIPS = {
   10: [[30, 16], [70, 16], [50, 27], [30, 39], [70, 39], [30, 61], [70, 61], [50, 73], [30, 84], [70, 84]],
 };
 
+// Each pip shows a different part of the face (eyes, brows, grin, beard…).
+const FACE_CROPS = ['50% 42%', '30% 40%', '70% 40%', '50% 72%', '50% 58%', '38% 30%', '64% 30%', '50% 85%', '35% 62%', '65% 62%'];
+
+// A suit-shaped window onto the face image.
+function facePip(suit, cropIndex, { whole = false } = {}) {
+  const pip = document.createElement('span');
+  pip.className = `pip suit-${suit}`;
+  const face = document.createElement('span');
+  face.className = 'pip-face';
+  if (whole) face.classList.add('whole');
+  else face.style.backgroundPosition = FACE_CROPS[cropIndex % FACE_CROPS.length];
+  pip.appendChild(face);
+  return pip;
+}
+
 function cardEl(card, faceDown = false) {
   const div = document.createElement('div');
   div.className = 'card';
@@ -88,7 +110,11 @@ function cardEl(card, faceDown = false) {
     const url = artUrl('BACK');
     if (url) {
       div.classList.add('has-art');
-      div.appendChild(imgEl(url, 'card back'));
+      div.appendChild(imgEl(url, ''));
+    } else {
+      const medal = facePip('S', 0, { whole: true });
+      medal.classList.add('medallion');
+      div.appendChild(medal);
     }
     return div;
   }
@@ -112,21 +138,19 @@ function cardEl(card, faceDown = false) {
         half.appendChild(imgEl(url, pos === 'top' ? `${rank}${sym} card art` : ''));
       } else {
         half.classList.add('fallback');
-        half.innerHTML = `<span class="crown">👑</span><span class="who">${FALLBACK_ART[rank]}</span>`;
+        half.innerHTML = `<span class="crown">${rank === 'J' ? '🎸' : '👑'}</span><span class="head"></span>`;
       }
       frame.appendChild(half);
     }
   } else {
     if (rank === 'A') div.classList.add('ace');
-    for (const [x, y] of PIPS[rank]) {
-      const pip = document.createElement('span');
-      pip.className = 'pip';
+    PIPS[rank].forEach(([x, y], i) => {
+      const pip = facePip(suit, i, { whole: rank === 'A' });
       if (y > 50) pip.classList.add('flip');
       pip.style.left = `${x}%`;
       pip.style.top = `${y}%`;
-      pip.textContent = sym;
       frame.appendChild(pip);
-    }
+    });
   }
   div.appendChild(frame);
 
@@ -144,46 +168,62 @@ function imgEl(src, alt) {
   img.className = 'art';
   img.src = src;
   img.alt = alt;
-  img.loading = 'lazy';
   img.decoding = 'async';
   return img;
 }
 
 // ---------- game state ----------
-const saved = Number(store.get(STORAGE_KEY));
-const game = new BlackjackGame({ bankroll: saved > 0 ? saved : START_BANKROLL });
-let bet = 0;
-let lastBet = 0;
+// No betting: every hand is a flat 1-unit game, only results are counted.
+const game = new BlackjackGame({ bankroll: Infinity });
+const score = loadScore();
+
+function loadScore() {
+  try {
+    const s = JSON.parse(store.get(SCORE_KEY));
+    if (s && [s.bj, s.win, s.lose].every(Number.isFinite)) return s;
+  } catch { /* ignore */ }
+  return { bj: 0, win: 0, lose: 0 };
+}
+
+function record(results) {
+  for (const r of results) {
+    if (r.outcome === 'blackjack') score.bj++;
+    else if (r.outcome === 'win') score.win++;
+    else if (r.outcome === 'lose' || r.outcome === 'bust') score.lose++;
+  }
+  store.set(SCORE_KEY, JSON.stringify(score));
+}
 
 function render() {
   const inRound = game.phase === PHASE.PLAYER;
   const settled = game.phase === PHASE.SETTLED;
 
-  els.bankroll.textContent = fmt(game.bankroll);
-  els.bet.textContent = bet;
+  els.scoreBj.textContent = score.bj;
+  els.scoreWin.textContent = score.win;
+  els.scoreLose.textContent = score.lose;
 
-  // Dealer
-  els.dealerHand.replaceChildren(
-    ...game.dealer.map((c, i) => cardEl(c, inRound && i === 1)),
-  );
+  // Dealer (hole card stays hidden while the player acts)
+  els.dealerHand.replaceChildren(...game.dealer.map((c, i) => cardEl(c, inRound && i === 1)));
   if (!game.dealer.length) els.dealerTotal.textContent = '';
   else if (inRound) els.dealerTotal.textContent = handValue([game.dealer[0]]).total;
   else els.dealerTotal.textContent = handValue(game.dealer).total;
 
   // Player hands
+  const multi = game.hands.length > 1;
   els.playerHands.replaceChildren(
-    ...game.hands.map((h, i) => {
+    ...(game.hands.length ? game.hands : [{ cards: [] }]).map((h, i) => {
       const wrap = document.createElement('div');
       wrap.className = 'player-hand';
-      if (inRound && i === game.active && game.hands.length > 1) wrap.classList.add('active');
-      const { total, soft } = handValue(h.cards);
-      const r = settled ? game.results[i] : null;
+      if (inRound && multi && i === game.active) wrap.classList.add('active');
       const title = document.createElement('h3');
-      title.innerHTML =
-        `${game.hands.length > 1 ? `Hand ${i + 1}` : 'You'} ` +
-        `<span class="total">${soft && total < 21 ? `soft ${total}` : total}</span> ` +
-        `<span class="muted">· bet ${h.bet}</span>` +
-        (r ? `<span class="result ${r.outcome}">${OUTCOME_TEXT[r.outcome]} ${r.net >= 0 ? '+' : ''}${fmt(r.net)}</span>` : '');
+      let html = multi ? `Hand ${i + 1}` : 'You';
+      if (h.cards.length) {
+        const { total, soft } = handValue(h.cards);
+        html += ` <span class="total">${soft && total < 21 ? `soft ${total}` : total}</span>`;
+      }
+      const r = settled ? game.results[i] : null;
+      if (r) html += ` <span class="result ${r.outcome}">${OUTCOME_TEXT[r.outcome]}</span>`;
+      title.innerHTML = html;
       const hand = document.createElement('div');
       hand.className = 'hand';
       hand.append(...h.cards.map((c) => cardEl(c)));
@@ -192,97 +232,66 @@ function render() {
     }),
   );
 
-  // Controls
+  // Bottom action bar: "deal" between rounds, hit/stand(/split) during a round
   const a = game.actions();
-  els.hit.disabled = !a.hit;
-  els.stand.disabled = !a.stand;
-  els.double.disabled = !a.double;
-  els.split.disabled = !a.split;
-  const canBet = !inRound;
-  document.querySelectorAll('.chip').forEach((b) => {
-    b.disabled = !canBet || (b.dataset.chip && bet + Number(b.dataset.chip) > game.bankroll);
-  });
-  els.clearBet.disabled = !canBet || bet === 0;
-  els.deal.disabled = !canBet || bet <= 0 || bet > game.bankroll;
-
-  store.set(STORAGE_KEY, String(game.bankroll));
+  els.deal.hidden = inRound;
+  els.deal.textContent = settled ? '한 판 더!' : '딜 받기';
+  els.hit.hidden = !inRound;
+  els.stand.hidden = !inRound;
+  els.split.hidden = !inRound || !a.split;
 }
-
-const fmt = (n) => n.toLocaleString('en-US', { maximumFractionDigits: 1 });
 
 function announce(text) {
   els.banner.textContent = text;
+  els.banner.classList.remove('pop');
+  void els.banner.offsetWidth; // restart the animation
+  els.banner.classList.add('pop');
+}
+
+function headline(results) {
+  if (results.length > 1) {
+    const w = results.filter((r) => r.outcome === 'win' || r.outcome === 'blackjack').length;
+    const l = results.filter((r) => r.outcome === 'lose' || r.outcome === 'bust').length;
+    return w > l ? 'win' : w === l ? 'push' : 'lose';
+  }
+  return results[0].outcome;
 }
 
 function afterAction() {
   if (game.phase === PHASE.SETTLED) {
-    const best = pickHeadline(game.results);
-    const lines = BANTER[best];
-    announce(lines[Math.floor(Math.random() * lines.length)]);
-    bet = Math.min(lastBet, game.bankroll);
-    if (game.bankroll <= 0) {
-      game.bankroll = START_BANKROLL;
-      bet = 0;
-      announce('💸 칩이 바닥났다! 새 투어 시작 — 칩 1000개 지급! 🎸');
-    }
+    record(game.results);
+    announce(pick(BANTER[headline(game.results)]));
   } else if (game.phase === PHASE.PLAYER && game.hands.length > 1) {
-    announce(`Hand ${game.active + 1} 차례!`);
-  } else if (game.phase === PHASE.PLAYER) {
-    announce('Hit? Stand? 록 스피릿을 믿어!');
+    announce(`Hand ${game.active + 1} 차례야!`);
   }
   render();
 }
 
-function pickHeadline(results) {
-  const order = ['blackjack', 'win', 'push', 'lose', 'bust'];
-  const net = results.reduce((s, r) => s + r.net, 0);
-  if (results.length > 1) return net > 0 ? 'win' : net === 0 ? 'push' : 'lose';
-  return order.find((o) => results.some((r) => r.outcome === o));
-}
-
-// ---------- events ----------
-function safely(fn) {
+function act(fn) {
   return () => {
     try {
       fn();
     } catch (err) {
       announce(err.message);
+      return;
     }
     afterAction();
   };
 }
 
-document.querySelectorAll('.chip[data-chip]').forEach((b) =>
-  b.addEventListener('click', () => {
-    if (game.phase === PHASE.PLAYER) return;
-    bet = Math.min(bet + Number(b.dataset.chip), game.bankroll);
-    render();
-  }),
-);
-els.clearBet.addEventListener('click', () => {
-  bet = 0;
+els.deal.addEventListener('click', act(() => {
+  game.deal(1);
+  announce(pick(BANTER.deal));
+}));
+els.hit.addEventListener('click', act(() => game.hit()));
+els.stand.addEventListener('click', act(() => game.stand()));
+els.split.addEventListener('click', act(() => game.split()));
+
+$('reset-score').addEventListener('click', () => {
+  if (!confirm('점수를 초기화할까요?')) return;
+  Object.assign(score, { bj: 0, win: 0, lose: 0 });
+  store.set(SCORE_KEY, JSON.stringify(score));
   render();
-});
-
-const deal = safely(() => {
-  lastBet = bet;
-  game.deal(bet);
-});
-els.deal.addEventListener('click', deal);
-els.hit.addEventListener('click', safely(() => game.hit()));
-els.stand.addEventListener('click', safely(() => game.stand()));
-els.double.addEventListener('click', safely(() => game.double()));
-els.split.addEventListener('click', safely(() => game.split()));
-
-document.addEventListener('keydown', (e) => {
-  if (els.disclaimer.open || e.metaKey || e.ctrlKey || e.altKey) return;
-  const key = e.key.toLowerCase();
-  const map = { h: els.hit, s: els.stand, d: els.double, p: els.split, enter: els.deal };
-  const btn = map[key];
-  if (btn && !btn.disabled) {
-    e.preventDefault();
-    btn.click();
-  }
 });
 
 // ---------- disclaimer ----------
@@ -291,4 +300,5 @@ els.disclaimer.addEventListener('close', () => store.set(DISCLAIMER_KEY, '1'));
 if (store.get(DISCLAIMER_KEY) !== '1') els.disclaimer.showModal();
 
 await loadArt();
+applyArt();
 render();

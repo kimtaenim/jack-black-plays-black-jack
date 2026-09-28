@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Original cartoon "rocker" face used as fallback art (not a likeness of a real photo). -->
+  <path fill="#3b2314" d="M40 95C30 40 70 12 105 14c40 2 67 31 60 86 5 30 3 60-7 78l-18-28c10-30 8-60 0-80-20-10-60-10-80 2-10 23-10 53 0 78l-18 28c-10-18-8-53-2-83z"/>
+  <ellipse cx="48" cy="112" rx="8" ry="13" fill="#e2a883"/>
+  <ellipse cx="152" cy="112" rx="8" ry="13" fill="#e2a883"/>
+  <ellipse cx="100" cy="108" rx="52" ry="60" fill="#f0c19a"/>
+  <path fill="#3b2314" d="M49 84c4-38 40-50 62-46 26 3 44 20 42 46-12-16-30-24-48-23-18 0-38 8-56 23z"/>
+  <path d="M66 88q14-9 26-1" stroke="#2a180c" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <path d="M108 80q15-17 31-3" stroke="#2a180c" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <ellipse cx="80" cy="99" rx="9" ry="7" fill="#fff"/>
+  <circle cx="83" cy="99" r="4" fill="#3a2414"/>
+  <ellipse cx="123" cy="96" rx="10" ry="9" fill="#fff"/>
+  <circle cx="126" cy="96" r="4.5" fill="#3a2414"/>
+  <path d="M101 100q-4 17-9 21 8 7 17 1" stroke="#c98a64" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path fill="#4a2e1a" opacity=".85" d="M60 128q4 42 40 46 36-4 40-46-6 30-40 32-34-2-40-32z"/>
+  <path d="M76 135q24 30 48 0z" fill="#7a1e1e"/>
+  <path d="M78 136h44q-3 6-22 7-19-1-22-7z" fill="#fff"/>
+  <path fill="#4a2e1a" d="M70 131q30-14 60 0-6 6-30 3-24 3-30-3z"/>
+  <path fill="#3b2314" d="M91 160q9 16 18 0-9 5-18 0z"/>
+</svg>

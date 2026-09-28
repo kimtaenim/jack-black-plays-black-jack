@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Generates card artwork with the OpenAI Images API and writes it to assets/cards/.
 //
-//   OPENAI_API_KEY=sk-... node scripts/generate-cards.mjs            # face cards + back (13 images)
+//   OPENAI_API_KEY=sk-... node scripts/generate-cards.mjs            # court cards, dealer, pip face, back (15 images)
 //   OPENAI_API_KEY=sk-... node scripts/generate-cards.mjs --only KS  # a single card
 //   OPENAI_API_KEY=sk-... node scripts/generate-cards.mjs --force    # regenerate existing files
 //   node scripts/generate-cards.mjs --dry-run                        # print prompts, no API calls
@@ -88,6 +88,27 @@ function buildJobs(subject) {
     }
   }
   jobs.push({
+    id: 'DEALER',
+    size: '1024x1024',
+    background: 'transparent',
+    prompt:
+      `${subject} as a casino blackjack dealer, wearing a sharp black suit, crisp white shirt and a slim ` +
+      'black tie, seated and facing the viewer across the table, waist-up, both hands resting just below ' +
+      'the frame, confident mischievous grin with one eyebrow raised. Bold ink outlines, rich colors, ' +
+      'humorous and affectionate caricature. Isolated character on a transparent background, ' +
+      'no table, no cards, no text, no logos.',
+  });
+  jobs.push({
+    id: 'FACE',
+    size: '1024x1024',
+    background: 'transparent',
+    prompt:
+      `${subject}, close-up of the head only, front-facing, the face filling most of the frame ` +
+      'from hairline to chin, big grin, one eyebrow raised, bold ink outlines and flat saturated colors ' +
+      '(it will be shown tiny inside playing-card suit symbols, so keep features large and readable). ' +
+      'Transparent background, no text, no logos.',
+  });
+  jobs.push({
     id: 'BACK',
     size: '1024x1536',
     prompt:
@@ -100,7 +121,7 @@ function buildJobs(subject) {
 }
 
 // ---------- OpenAI Images API ----------
-async function generateImage({ apiKey, model, quality, prompt, size }) {
+async function generateImage({ apiKey, model, quality, prompt, size, background }) {
   const res = await fetch('https://api.openai.com/v1/images/generations', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
@@ -110,6 +131,7 @@ async function generateImage({ apiKey, model, quality, prompt, size }) {
       size,
       quality,
       n: 1,
+      ...(background ? { background } : {}),
       output_format: 'webp',
       output_compression: 80,
     }),
@@ -182,7 +204,7 @@ async function main() {
     }
     process.stdout.write(`- ${job.id}: generating... `);
     try {
-      const img = await withRetry(() => generateImage({ apiKey, model, quality, prompt: job.prompt, size: job.size }));
+      const img = await withRetry(() => generateImage({ apiKey, model, quality, ...job }));
       await writeFile(dest, img);
       manifest.cards[job.id] = file;
       console.log(`ok (${Math.round(img.length / 1024)} KB)`);
