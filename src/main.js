@@ -56,13 +56,7 @@ const els = {
   dealerHand: $('dealer-hand'),
   dealerTotal: $('dealer-total'),
   playerHands: $('player-hands'),
-  deal: $('deal'),
-  hit: $('hit'),
-  stand: $('stand'),
-  split: $('split'),
-  scoreBj: $('score-bj'),
-  scoreWin: $('score-win'),
-  scoreLose: $('score-lose'),
+  panel: $('panel'),
   disclaimer: $('disclaimer'),
 };
 
@@ -203,16 +197,23 @@ function record(results) {
     else if (r.outcome === 'win') score.win++;
     else if (r.outcome === 'lose' || r.outcome === 'bust') score.lose++;
   }
-  store.set(SCORE_KEY, JSON.stringify(score));
+  saveScore();
 }
+const saveScore = () => store.set(SCORE_KEY, JSON.stringify(score));
+
+// Cards stand upright side by side; when they don't fit (3–4 cards) they overlap just enough.
+function fitHand(handEl) {
+  const cards = handEl.children;
+  if (cards.length < 2) return;
+  const w = cards[0].getBoundingClientRect().width;
+  const avail = handEl.clientWidth;
+  const step = Math.min(w * 1.06, (avail - w) / (cards.length - 1));
+  for (let i = 1; i < cards.length; i++) cards[i].style.marginLeft = `${step - w}px`;
+}
+const fitAll = () => document.querySelectorAll('.hand').forEach(fitHand);
 
 function render() {
   const inRound = game.phase === PHASE.PLAYER;
-  const settled = game.phase === PHASE.SETTLED;
-
-  els.scoreBj.textContent = score.bj;
-  els.scoreWin.textContent = score.win;
-  els.scoreLose.textContent = score.lose;
 
   // Dealer (hole card stays hidden while the player acts)
   els.dealerHand.replaceChildren(...game.dealer.map((c, i) => cardEl(c, inRound && i === 1)));
@@ -222,6 +223,7 @@ function render() {
 
   // Player hands
   const multi = game.hands.length > 1;
+  els.playerHands.classList.toggle('multi', multi);
   els.playerHands.replaceChildren(
     ...(game.hands.length ? game.hands : [{ cards: [] }]).map((h, i) => {
       const wrap = document.createElement('div');
@@ -233,8 +235,8 @@ function render() {
         const { total, soft } = handValue(h.cards);
         html += ` <span class="total">${soft && total < 21 ? `soft ${total}` : total}</span>`;
       }
-      const r = settled ? game.results[i] : null;
-      if (r) html += ` <span class="result ${r.outcome}">${OUTCOME_TEXT[r.outcome]}</span>`;
+      const r = game.phase === PHASE.SETTLED ? game.results[i] : null;
+      if (r && multi) html += ` <span class="result ${r.outcome}">${OUTCOME[r.outcome].short}</span>`;
       title.innerHTML = html;
       const hand = document.createElement('div');
       hand.className = 'hand';
@@ -244,13 +246,65 @@ function render() {
     }),
   );
 
-  // Bottom action bar: "deal" between rounds, hit/stand(/split) during a round
-  const a = game.actions();
-  els.deal.hidden = inRound;
-  els.deal.textContent = settled ? '한 판 더!' : '딜 받기';
-  els.hit.hidden = !inRound;
-  els.stand.hidden = !inRound;
-  els.split.hidden = !inRound || !a.split;
+  renderPanel();
+  fitAll();
+}
+
+// ---------- center panel: start / "one more card?" / result + scoreboard ----------
+const OUTCOME = {
+  blackjack: { big: 'Blackjack!!', short: 'BLACKJACK', tone: 'good' },
+  win: { big: 'You Win!', short: 'WIN', tone: 'good' },
+  push: { big: 'Push', short: 'PUSH', tone: 'even' },
+  lose: { big: 'Dealer Wins', short: 'LOSE', tone: 'bad' },
+  bust: { big: 'Bust!', short: 'BUST', tone: 'bad' },
+};
+
+function button(cls, label, sub, onClick) {
+  const b = document.createElement('button');
+  b.className = `btn ${cls}`;
+  b.innerHTML = sub ? `${label}<small>${sub}</small>` : label;
+  b.addEventListener('click', onClick);
+  return b;
+}
+
+function scoreboard() {
+  const div = document.createElement('div');
+  div.className = 'scoreboard';
+  div.innerHTML =
+    `<div class="score bj"><span>블랙잭 승</span><strong>${score.bj}</strong></div>` +
+    `<div class="score win"><span>승</span><strong>${score.win}</strong></div>` +
+    `<div class="score lose"><span>패</span><strong>${score.lose}</strong></div>`;
+  return div;
+}
+
+function renderPanel() {
+  const p = els.panel;
+  p.className = 'panel';
+  p.replaceChildren();
+  const head = document.createElement('p');
+  const row = document.createElement('div');
+  row.className = 'row';
+
+  if (game.phase === PHASE.PLAYER) {
+    head.className = 'ask';
+    head.innerHTML = `${game.hands.length > 1 ? `Hand ${game.active + 1} · ` : ''}한 장 더 받을까?<small>Hit me?</small>`;
+    row.append(
+      button('yes', 'YES', '더 받기', act(() => game.hit())),
+      button('no', 'NO', '그만', act(() => game.stand())),
+    );
+    if (game.actions().split) row.append(button('split', 'SPLIT', '나누기', act(() => game.split())));
+  } else if (game.phase === PHASE.SETTLED) {
+    const o = OUTCOME[headline(game.results)];
+    p.classList.add('result-panel');
+    head.className = `outcome ${o.tone}`;
+    head.textContent = o.big;
+    row.append(scoreboard(), button('gold', '한 판 더!', 'PLAY AGAIN', deal));
+  } else {
+    head.className = 'ask';
+    head.innerHTML = '딜러 잭이 기다린다!<small>Ready to rock?</small>';
+    row.append(scoreboard(), button('gold', '게임 시작', 'DEAL', deal));
+  }
+  p.append(head, row);
 }
 
 // Dealer banner: a famous line in English + Korean, with its source.
@@ -273,14 +327,6 @@ function headline(results) {
   return results[0].outcome;
 }
 
-function afterAction() {
-  if (game.phase === PHASE.SETTLED) {
-    record(game.results);
-    say(headline(game.results));
-  }
-  render();
-}
-
 function act(fn) {
   return () => {
     try {
@@ -289,22 +335,29 @@ function act(fn) {
       console.warn(err);
       return;
     }
-    afterAction();
+    if (game.phase === PHASE.SETTLED) {
+      record(game.results);
+      say(headline(game.results));
+    }
+    render();
   };
 }
 
-els.deal.addEventListener('click', act(() => {
+const deal = act(() => {
   game.deal(1);
   say('deal');
-}));
-els.hit.addEventListener('click', act(() => game.hit()));
-els.stand.addEventListener('click', act(() => game.stand()));
-els.split.addEventListener('click', act(() => game.split()));
+});
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(fitAll, 100);
+});
 
 $('reset-score').addEventListener('click', () => {
   if (!confirm('점수를 초기화할까요?')) return;
   Object.assign(score, { bj: 0, win: 0, lose: 0 });
-  store.set(SCORE_KEY, JSON.stringify(score));
+  saveScore();
   render();
 });
 

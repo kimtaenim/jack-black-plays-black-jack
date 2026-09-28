@@ -3,73 +3,55 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b0706" />
+  <meta name="theme-color" content="#1a0304" />
   <title>Jack Black Plays Black Jack</title>
   <meta name="description" content="교육 및 포트폴리오 목적의 비상업적 팬메이드 패러디 블랙잭 게임 / A non-commercial, fan-made parody blackjack game." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rye&family=Playfair+Display:wght@700;900&family=Noto+Sans+KR:wght@400;700&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rye&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Noto+Sans+KR:wght@400;700;900&display=swap" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="curtain left" aria-hidden="true"></div>
   <div class="curtain right" aria-hidden="true"></div>
+  <div class="spotlights" aria-hidden="true"></div>
 
-  <header class="marquee">
-    <h1 class="title">
-      <span class="line gold">Jack Black</span>
-      <span class="plays"><i>★</i> plays <i>★</i></span>
-      <span class="line ivory">Black Jack</span>
-    </h1>
-  </header>
+  <div class="app">
+    <header class="topbar">
+      <div class="bulbs" aria-hidden="true"></div>
+      <h1 class="title">
+        <span class="gold">Jack Black</span><i>★ plays ★</i><span class="gold">Black Jack</span>
+      </h1>
+      <button class="info" id="show-disclaimer" aria-label="Disclaimer">i</button>
+    </header>
 
-  <section class="scoreboard" aria-label="Score">
-    <div class="score bj"><span>블랙잭 승</span><strong id="score-bj">0</strong></div>
-    <div class="score win"><span>승</span><strong id="score-win">0</strong></div>
-    <div class="score lose"><span>패</span><strong id="score-lose">0</strong></div>
-  </section>
-
-  <main class="stage">
     <section class="dealer-banner" aria-label="Dealer Jack">
       <div class="portrait"><img id="dealer-img" src="assets/dealer.svg" alt="Dealer Jack in a black suit" /></div>
       <div class="dialogue" role="status" aria-live="polite">
-        <div class="nameplate">DEALER JACK <span>딜러 잭</span></div>
         <p class="quote-en" id="quote-en"></p>
-        <p class="quote-ko" id="quote-ko"></p>
-        <p class="quote-src" id="quote-src"></p>
+        <p class="quote-ko"><span id="quote-ko"></span> <span class="quote-src" id="quote-src"></span></p>
       </div>
     </section>
 
-    <div class="table">
-      <section class="seat" aria-label="Dealer">
+    <main class="table">
+      <section class="dealer-area" aria-label="Dealer">
         <h2>Dealer Jack <span class="total" id="dealer-total"></span></h2>
         <div class="hand" id="dealer-hand"></div>
       </section>
 
-      <div class="felt-print" aria-hidden="true"><span>BLACKJACK</span>Dealer must stand on 17</div>
+      <section class="center">
+        <div class="panel" id="panel" aria-live="polite"></div>
+      </section>
 
-      <section class="seat" aria-label="Player">
+      <section class="player-area" aria-label="Player">
         <div class="hands" id="player-hands"></div>
       </section>
-    </div>
-  </main>
+    </main>
 
-  <nav class="action-bar" aria-label="Actions">
-    <button class="btn primary" id="deal">딜 받기</button>
-    <button class="btn" id="hit" hidden>히트<small>HIT</small></button>
-    <button class="btn" id="stand" hidden>스탠드<small>STAND</small></button>
-    <button class="btn" id="split" hidden>스플릿<small>SPLIT</small></button>
-  </nav>
-
-  <footer class="foot">
-    <p>
-      ⚠️ 교육 및 포트폴리오 목적의 비상업적 팬메이드 패러디입니다. Jack Black의 이름 및 초상에 대한 어떠한 권리도 소유하지 않습니다.
-      <br />
-      <button class="link" id="show-disclaimer">Disclaimer (면책 조항)</button>
-      · <a href="https://github.com/kimtaenim/jack-black-plays-black-jack">GitHub</a>
-      · <button class="link" id="reset-score">점수 초기화</button>
-    </p>
-  </footer>
+    <footer class="foot">
+      Non-commercial fan-made parody · 교육·포트폴리오용 비상업적 팬메이드 패러디
+    </footer>
+  </div>
 
   <dialog id="disclaimer" aria-labelledby="disclaimer-title">
     <h2 id="disclaimer-title">⚠️ Disclaimer (면책 조항)</h2>
@@ -90,9 +72,11 @@
         카드와 딜러 그림은 AI로 생성한 캐리커처이며, 딜러의 대사는 출연 영화의 짧은 명대사를 작품명과 함께 인용한 것으로
         각 권리는 해당 권리자에게 있습니다. 실제 돈이 오가지 않습니다.
       </p>
+      <p class="dlinks"><a href="https://github.com/kimtaenim/jack-black-plays-black-jack">GitHub</a></p>
     </div>
     <form method="dialog">
-      <button class="btn primary" value="ok">확인 · OK</button>
+      <button class="reset" id="reset-score" type="button">점수 초기화</button>
+      <button class="btn gold" value="ok">확인 · OK</button>
     </form>
   </dialog>
 
