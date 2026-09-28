@@ -18,26 +18,28 @@
   <div class="valance" aria-hidden="true"></div>
 
   <div class="app">
-    <header class="topbar">
-      <div class="bulbs" aria-hidden="true"></div>
-      <img class="title-art" id="title-art" alt="" hidden />
-      <h1 class="title">
-        <b class="orn" aria-hidden="true">♠</b><span class="gold">Jack Black</span><i>★ plays ★</i><span class="ivory">Black Jack</span><b class="orn" aria-hidden="true">♠</b>
-      </h1>
-    </header>
-
-    <section class="dealer-banner" aria-label="Dealer and score">
-      <div class="portrait">
+    <header class="stagehead">
+      <div class="topbar">
+        <div class="bulbs" aria-hidden="true"></div>
+        <img class="title-art" id="title-art" alt="" hidden />
+        <h1 class="title">
+          <span class="gold">Jack Black</span>
+          <i>★ plays ★</i>
+          <span class="ivory">Black Jack</span>
+        </h1>
+      </div>
+      <div class="portrait" aria-label="Dealer">
         <img id="dealer-img" src="assets/dealer.svg" alt="Dealer" />
         <span class="mood" id="mood" aria-hidden="true"></span>
       </div>
-      <div class="scoreboard" aria-label="Score" aria-live="polite">
-        <div class="score bj"><span>블랙잭 승</span><strong id="score-bj">0</strong></div>
-        <div class="score win"><span>승</span><strong id="score-win">0</strong></div>
-        <div class="score lose"><span>패</span><strong id="score-lose">0</strong></div>
-        <div class="score rate"><span>승률</span><strong id="score-rate">–</strong></div>
-      </div>
-    </section>
+    </header>
+
+    <p class="scoreline" aria-label="Score" aria-live="polite">
+      <span class="bj">블랙잭 승 <b id="score-bj">0</b></span>
+      <span class="win">승 <b id="score-win">0</b></span>
+      <span class="lose">패 <b id="score-lose">0</b></span>
+      <span class="rate">승률 <b id="score-rate">–</b></span>
+    </p>
 
     <main class="table">
       <section class="dealer-area" aria-label="Dealer">

@@ -155,20 +155,24 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
   padding: 16px 6px calc(4px + env(safe-area-inset-bottom));
 }
 
-/* ---------- title: floats on the stage, lit by a string of bulbs (no frame) ---------- */
-.topbar {
-  position: relative;
+/* ---------- stage head: stacked title (narrow, tall) + big dealer face ---------- */
+.stagehead {
   flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 54px;
-  padding: 10px 8px 11px;
-  background: radial-gradient(ellipse 60% 70% at 50% 50%, rgba(0, 0, 0, 0.75), transparent 75%);
+  gap: clamp(10px, 4vw, 28px);
+}
+.topbar {
+  position: relative;
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 9px 14px 10px;
+  background: radial-gradient(ellipse 65% 70% at 50% 50%, rgba(0, 0, 0, 0.75), transparent 75%);
 }
 .bulbs {
   position: absolute;
-  inset: 2px 10%;
+  inset: 0 6%;
   pointer-events: none;
   background:
     radial-gradient(circle, #fff6c8 0 1.6px, #ffb640 2.4px, transparent 3.4px) 0 0 / 14px 6px repeat-x,
@@ -182,14 +186,13 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
 .title {
   margin: 0;
   display: flex;
-  align-items: baseline;
-  gap: 0.35em;
+  flex-direction: column;
+  align-items: center;
   white-space: nowrap;
   font-family: var(--display);
   font-weight: 400;
-  font-size: clamp(0.8rem, 4.25vw, 2.1rem);
-  line-height: 1;
-  letter-spacing: -0.01em;
+  font-size: clamp(1.25rem, 6.6vw, 2.5rem);
+  line-height: 0.95;
   text-transform: uppercase;
 }
 .title .gold {
@@ -211,87 +214,69 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
     0 3px 0 #3d0407, 0 0 8px rgba(255, 230, 170, 0.5);
 }
 .title i {
+  margin: 2px 0 1px;
   font-family: var(--serif);
   font-style: italic;
   font-weight: 900;
-  font-size: 0.5em;
-  letter-spacing: 0.08em;
+  font-size: 0.42em;
+  letter-spacing: 0.2em;
   color: var(--gold);
   text-shadow: 0 0 6px rgba(242, 198, 90, 0.8);
 }
-.title .orn {
-  font-family: var(--serif);
-  font-weight: 900;
-  font-size: 0.7em;
-  color: var(--gold);
-  text-shadow: 0 0 6px rgba(242, 198, 90, 0.7);
-}
-@media (max-width: 420px) { .title .orn { display: none; } }
 
-/* generated banner art replaces the CSS title when present */
+/* generated title art (stacked lettering) replaces the CSS title when present */
 .title-art {
   display: block;
-  width: 100%;
-  max-width: 560px;
-  height: clamp(64px, 19vw, 130px);
-  margin: 0 auto;
+  width: clamp(190px, 58vw, 360px);
+  height: clamp(84px, 25vw, 150px);
   object-fit: cover;
-  -webkit-mask: radial-gradient(ellipse 55% 60% at 50% 50%, #000 70%, transparent 100%);
-  mask: radial-gradient(ellipse 55% 60% at 50% 50%, #000 70%, transparent 100%);
+  -webkit-mask: radial-gradient(ellipse 58% 62% at 50% 50%, #000 70%, transparent 100%);
+  mask: radial-gradient(ellipse 58% 62% at 50% 50%, #000 70%, transparent 100%);
 }
-.topbar.has-art { padding: 0; min-height: 0; background: none; }
+.topbar.has-art { padding: 0; background: none; }
 .topbar.has-art .title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .topbar.has-art .bulbs { display: none; }
 
-/* ---------- dealer strip: portrait + score, no box ---------- */
-.dealer-banner {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 2px 6px;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3) 70%, transparent);
-  border-radius: 40px 12px 12px 40px;
-}
+/* big dealer face */
 .portrait {
   position: relative;
   flex: none;
-  width: 54px;
-  height: 54px;
+  width: clamp(78px, 24vw, 128px);
+  aspect-ratio: 1;
   border-radius: 50%;
   background: #2a1510;
-  box-shadow: 0 0 0 2px var(--gold), 0 0 14px rgba(242, 198, 90, 0.6);
+  box-shadow: 0 0 0 3px var(--gold), 0 0 0 5px rgba(0, 0, 0, 0.6), 0 0 22px rgba(242, 198, 90, 0.6);
 }
 .portrait img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; object-position: 50% 10%; display: block; }
 .portrait.pop img { animation: bob 0.35s ease-out; }
-@keyframes bob { 40% { transform: scale(1.12) rotate(-4deg); } }
+@keyframes bob { 40% { transform: scale(1.08) rotate(-4deg); } }
 /* expression badge (only while the generated expression images don't exist yet) */
 .mood {
   position: absolute;
-  right: -6px;
-  bottom: -4px;
-  font-size: 1.15rem;
+  right: -4px;
+  bottom: -2px;
+  font-size: clamp(1.2rem, 6vw, 1.8rem);
   line-height: 1;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
 }
 .mood:empty { display: none; }
 
-.scoreboard { flex: 1; min-width: 0; display: flex; }
-.score {
-  flex: 1 1 0;
-  min-width: 0;
+/* ---------- score: one small line ---------- */
+.scoreline {
+  flex: none;
+  margin: 0;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 2px;
+  justify-content: center;
+  gap: 14px;
+  font-size: 0.68rem;
+  color: var(--muted);
+  white-space: nowrap;
 }
-.score + .score { background: linear-gradient(rgba(242, 198, 90, 0.35), rgba(242, 198, 90, 0.35)) 0 20% / 1px 60% no-repeat; }
-.score span { font-size: 0.6rem; color: var(--muted); white-space: nowrap; letter-spacing: 0.04em; }
-.score strong { font-family: var(--serif); font-size: 1.3rem; line-height: 1.05; }
-.score.bj strong { color: var(--gold); text-shadow: 0 0 8px rgba(242, 198, 90, 0.6); }
-.score.win strong { color: var(--win); }
-.score.lose strong { color: var(--lose); }
-.score.rate strong { color: var(--ink); font-size: 1.1rem; }
+.scoreline b { font-family: var(--serif); font-size: 0.95rem; margin-left: 2px; }
+.scoreline .bj b { color: var(--gold); }
+.scoreline .win b { color: var(--win); }
+.scoreline .lose b { color: var(--lose); }
+.scoreline .rate b { color: var(--ink); }
 
 /* ---------- table: one gold rail around muted felt with printed gold rings ---------- */
 .table {
@@ -622,9 +607,7 @@ dialog .btn { flex: 0 1 220px; }
 .reset { background: none; border: 0; color: var(--muted); padding: 6px 10px; font-size: 0.8rem; text-decoration: underline; }
 
 @media (min-width: 720px) {
-  .portrait { width: 60px; height: 60px; }
-  .score span { font-size: 0.7rem; }
-  .score strong { font-size: 1.5rem; }
+  .scoreline { font-size: 0.8rem; }
   .table { padding: 10px 16px 12px; }
 }
 
