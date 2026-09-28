@@ -1,0 +1,48 @@
+name: card-import
+
+# assets/cards/ 에 직접 올린 그림(ChatGPT 등으로 만든 png/jpg)을 게임용으로 정리한다:
+# 유형별 크기로 줄인 webp 로 바꾸고 manifest.json 을 갱신해 커밋한다.
+# 파일 이름은 ID 그대로 (예: QS.png, DEALER_LAUGH.png, TITLE.png) — docs/IMAGE-GUIDE.md 참고.
+# 커밋이 끝나면 Pages 배포(pages.yml)가 이어서 돈다.
+
+on:
+  push:
+    branches: [main]
+    paths: ['assets/cards/**']
+  workflow_dispatch:
+
+concurrency:
+  group: card-import
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install cwebp
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq webp
+
+      - name: Convert uploads and update the manifest
+        run: node scripts/import-cards.mjs
+
+      - name: Commit & push
+        run: |
+          git config user.name "card-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A assets/cards
+          if git diff --cached --quiet; then
+            echo "바뀐 것 없음"
+          else
+            git commit -m "cards: 올린 그림 정리 ($(git diff --cached --name-only -- '*.webp' | wc -l)장)"
+            git pull --rebase origin "${{ github.ref_name }}"
+            git push origin HEAD:"${{ github.ref_name }}"
+          fi

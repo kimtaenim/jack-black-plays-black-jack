@@ -69,6 +69,18 @@ OpenAI 이미지 API로 그림을 만들면 자동으로 그 그림으로 바뀝
 딜러 표정: `IDLE` 대기 · `DEAL` 카드 돌릴 때(윙크) · `SHOCK` 내가 블랙잭 · `SAD` 내가 승리 ·
 `LAUGH` 딜러 승리 · `SMUG` 내가 버스트 · `SHRUG` 무승부. 없는 표정은 `DEALER_IDLE`, 그것도 없으면 기본 그림 + 이모지로 대신합니다.
 
+**방법 0 — ChatGPT 에서 직접 만들어 올리기**
+
+API 가 실존 인물 그림을 거절할 때 쓰는 방법입니다. **[docs/IMAGE-GUIDE.md](docs/IMAGE-GUIDE.md)** 에
+유형별 비율·크기, 파일 이름, 복사해서 쓰는 프롬프트가 전부 정리돼 있습니다.
+
+1. 가이드의 프롬프트를 ChatGPT 에 붙여넣고, 표의 비율(가로 3:2 / 세로 2:3 / 정사각형)로 만든다
+2. 파일 이름을 ID 로 바꾼다 (`QS.png`, `DEALER_LAUGH.png`, `TITLE.png` …)
+3. GitHub 에서 `assets/cards` → **Add file → Upload files**
+4. `card-import` 워크플로가 자동으로 크기를 줄인 webp 로 바꾸고 목록을 갱신 → 사이트에 반영
+
+로컬에서는 `assets/cards/` 에 파일을 넣고 `npm run import:cards`. 프롬프트를 고친 뒤에는 `npm run guide` 로 가이드를 다시 만듭니다.
+
 **방법 1 — GitHub Actions (추천)**
 
 1. **Settings → Secrets and variables → Actions → New repository secret**: `OPENAI_API_KEY`
@@ -107,7 +119,10 @@ src/engine.js               블랙잭 엔진 (순수 로직)
 src/main.js                 UI ↔ 엔진 연결, 카드 렌더링
 data/card-prompts.json      그림 생성 프롬프트
 scripts/generate-cards.mjs  OpenAI 그림 생성 스크립트
-.github/workflows/          Pages 배포, 그림 생성(card-images)
+scripts/import-cards.mjs    직접 올린 그림 정리 (webp 변환·축소, manifest 갱신)
+scripts/make-guide.mjs      docs/IMAGE-GUIDE.md 생성
+docs/IMAGE-GUIDE.md         ChatGPT 로 만들 때 쓰는 유형별 크기·파일 이름·프롬프트
+.github/workflows/          Pages 배포, 그림 생성(card-images), 올린 그림 정리(card-import)
 assets/face.svg, dealer.svg 기본 캐릭터 그림
 assets/cards/               생성된 그림 + manifest.json
 tests/engine.test.js        엔진 테스트

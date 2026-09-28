@@ -8,7 +8,9 @@
   "scripts": {
     "test": "node --test",
     "start": "npx --yes serve .",
-    "generate:cards": "node scripts/generate-cards.mjs"
+    "generate:cards": "node scripts/generate-cards.mjs",
+    "import:cards": "node scripts/import-cards.mjs",
+    "guide": "node scripts/make-guide.mjs"
   },
   "engines": {
     "node": ">=18"

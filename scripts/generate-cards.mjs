@@ -32,15 +32,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { ROOT, OUT_DIR, IMAGE_EXTS, KINDS, kindOf, loadPrompts, findImage, buildPrompt as promptFor, writeManifest as saveManifest } from './cards-lib.mjs';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const PROMPTS_FILE = path.join(ROOT, 'data/card-prompts.json');
-const OUT_DIR = path.join(ROOT, 'assets/cards');
-const MANIFEST = path.join(OUT_DIR, 'manifest.json');
 const ENDPOINT = process.env.OPENAI_IMAGES_ENDPOINT || 'https://api.openai.com/v1/images/generations';
-
-const SUIT = { S: '♠', H: '♥', D: '♦', C: '♣' };
 
 /* ── .env (의존성 없이) ───────────────────────────────────── */
 try {
@@ -72,29 +66,23 @@ const OPTS = {
 };
 
 /* ── 프롬프트 ─────────────────────────────────────────────── */
-const { style = {}, items = {} } = JSON.parse(fs.readFileSync(PROMPTS_FILE, 'utf8'));
+const prompts = loadPrompts();
+const { items } = prompts;
 
-const sizeOf = (id) => items[id].size || (items[id].type === 'court' ? '1024x1536' : '1024x1024');
-const buildPrompt = (id) => {
-  const item = items[id];
-  const tail =
-    item.type === 'court'
-      ? (style.court || '').replaceAll('{rank}', id[0]).replaceAll('{suit}', SUIT[id[1]] ?? '')
-      : item.noText === false ? '' : style.noText; // noText:false → 글자를 그려야 하는 항목(TITLE)
-  const base = item.useStyle === false ? '' : style.base; // useStyle:false → 카드 화풍(카드지·테두리) 빼기
-  return [item.prompt, base, tail].filter(Boolean).join('. ').replace(/\.\.+/g, '.');
-};
+const sizeOf = (id) => items[id].size || KINDS[kindOf(id)]?.size || '1024x1024';
+const buildPrompt = (id) => promptFor(prompts, id);
 
 const outFile = (id) => path.join(OUT_DIR, `${id}.webp`);
+const exists = (id) => findImage(id) !== null; // any extension (e.g. an uploaded ChatGPT png) counts
 const unknown = OPTS.only.filter((id) => !items[id]);
 if (unknown.length) console.warn(`! card-prompts.json 에 없는 ID (건너뜀): ${unknown.join(', ')}`);
 
 let targets = Object.keys(items).filter((id) => !OPTS.only.length || OPTS.only.includes(id));
 if (OPTS.listMissing) {
-  console.log(targets.filter((id) => !fs.existsSync(outFile(id))).join('\n') || '(없음)');
+  console.log(targets.filter((id) => !exists(id)).join('\n') || '(없음)');
   process.exit(0);
 }
-if (!OPTS.force && !OPTS.dryRun) targets = targets.filter((id) => !fs.existsSync(outFile(id)));
+if (!OPTS.force && !OPTS.dryRun) targets = targets.filter((id) => !exists(id));
 
 if (OPTS.dryRun) {
   for (const id of targets) console.log(`[${id}] ${sizeOf(id)}\n${buildPrompt(id)}\n`);
@@ -166,6 +154,8 @@ async function generate(id) {
       const b64 = JSON.parse(text)?.data?.[0]?.b64_json;
       if (!b64) throw new Error(`응답에 이미지가 없습니다: ${text.slice(0, 300)}`);
       fs.mkdirSync(OUT_DIR, { recursive: true });
+      // drop an older copy of this card in another format (e.g. an uploaded ChatGPT png)
+      for (const ext of IMAGE_EXTS) if (ext !== '.webp') fs.rmSync(path.join(OUT_DIR, `${id}${ext}`), { force: true });
       fs.writeFileSync(outFile(id), Buffer.from(b64, 'base64'));
       shrink(outFile(id));
       return outFile(id);
@@ -211,12 +201,7 @@ async function generate(id) {
 }
 
 /* ── manifest: 폴더에 실제로 있는 그림만 등록 ─────────────── */
-function writeManifest() {
-  const cards = {};
-  for (const id of Object.keys(items)) if (fs.existsSync(outFile(id))) cards[id] = `${id}.webp`;
-  fs.mkdirSync(OUT_DIR, { recursive: true });
-  fs.writeFileSync(MANIFEST, JSON.stringify({ cards }, null, 2) + '\n');
-}
+const writeManifest = () => saveManifest(Object.keys(items));
 
 /* ── 실행 ─────────────────────────────────────────────────── */
 console.log(`모델 ${model} / quality=${OPTS.quality} / 동시 ${OPTS.concurrency}` + (WILL_SHRINK ? ` / cwebp ${OPTS.maxWidth}px` : ''));
