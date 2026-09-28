@@ -1,0 +1,16 @@
+{
+  "name": "jack-black-plays-black-jack",
+  "version": "1.0.0",
+  "description": "A non-commercial, educational fan-parody blackjack game in the browser.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test",
+    "start": "npx --yes serve .",
+    "generate:cards": "node scripts/generate-cards.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

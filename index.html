@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1a0304" />
+  <title>Jack Black Plays Black Jack</title>
+  <meta name="description" content="교육 및 포트폴리오 목적의 비상업적 팬메이드 패러디 블랙잭 게임 / A non-commercial, fan-made parody blackjack game." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rye&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Noto+Sans+KR:wght@400;700;900&display=swap" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="curtain left" aria-hidden="true"></div>
+  <div class="curtain right" aria-hidden="true"></div>
+  <div class="spotlights" aria-hidden="true"></div>
+  <div class="valance" aria-hidden="true"></div>
+
+  <div class="app">
+    <header class="stagehead">
+      <div class="topbar">
+        <div class="bulbs" aria-hidden="true"></div>
+        <img class="title-art" id="title-art" alt="" hidden />
+        <h1 class="title">
+          <span class="gold">Jack Black</span>
+          <i>★ plays ★</i>
+          <span class="ivory">Black Jack</span>
+        </h1>
+      </div>
+      <div class="portrait" aria-label="Dealer">
+        <img id="dealer-img" src="assets/dealer.svg" alt="Dealer" />
+        <span class="mood" id="mood" aria-hidden="true"></span>
+      </div>
+    </header>
+
+    <p class="scoreline" aria-label="Score" aria-live="polite">
+      <span class="bj">블랙잭 승 <b id="score-bj">0</b></span>
+      <span class="win">승 <b id="score-win">0</b></span>
+      <span class="lose">패 <b id="score-lose">0</b></span>
+      <span class="rate">승률 <b id="score-rate">–</b></span>
+    </p>
+
+    <main class="table">
+      <section class="dealer-area" aria-label="Dealer">
+        <h2>Dealer <span class="total" id="dealer-total"></span></h2>
+        <div class="hand" id="dealer-hand"></div>
+      </section>
+
+      <!-- the box floats here, slightly over the dealer's cards and the player's cards -->
+      <div class="mid"><div class="panel" id="panel" aria-live="polite"></div></div>
+
+      <section class="player-area" aria-label="Player">
+        <div class="hands" id="player-hands"></div>
+      </section>
+
+    </main>
+
+    <footer class="foot">
+      <span class="chips" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <button class="foot-text" id="show-disclaimer">ⓘ Disclaimer · 비상업적 팬메이드 패러디</button>
+      <span class="chips" aria-hidden="true"><i></i><i></i><i></i></span>
+    </footer>
+  </div>
+
+  <dialog id="disclaimer" aria-labelledby="disclaimer-title">
+    <h2 id="disclaimer-title">⚠️ Disclaimer (면책 조항)</h2>
+    <div class="disclaimer-body" tabindex="-1">
+      <p lang="en">
+        This is a <strong>non-commercial, fan-made parody</strong> project created strictly for
+        <strong>educational and portfolio purposes</strong>.
+        I do not own any rights to the name or likeness of Jack Black. No copyright infringement is intended.
+        This project is not affiliated with, endorsed by, or sponsored by Jack Black or his representatives.
+        All card and dealer artwork is AI-generated caricature. No real money is involved.
+      </p>
+      <hr />
+      <p>
+        본 프로젝트는 <strong>교육 및 포트폴리오 목적</strong>으로 제작된 <strong>비상업적 팬메이드 패러디</strong>입니다.
+        Jack Black의 이름 및 초상에 대한 어떠한 권리도 소유하지 않으며, 저작권 침해 의도가 없습니다.
+        Jack Black 본인 및 관계사와 무관하며 승인·후원을 받지 않았습니다.
+        카드와 딜러 그림은 AI로 생성한 캐리커처이며, 실제 돈이 오가지 않습니다.
+      </p>
+      <p class="dlinks"><a href="https://github.com/kimtaenim/jack-black-plays-black-jack">GitHub</a></p>
+    </div>
+    <form method="dialog">
+      <button class="reset" id="reset-score" type="button">점수 초기화</button>
+      <button class="btn gold" value="ok">확인 · OK</button>
+    </form>
+  </dialog>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
