@@ -11,7 +11,8 @@
  *
  *   ID          용도
  *   JS … KC     J·Q·K 12장 (카드 한 장 전체를 그림, 1024x1536)
- *   DEALER_*    딜러 배너 왼쪽 초상 — 목각인형 스타일, 표정 7가지 (IDLE, DEAL, SHOCK, SAD, LAUGH, SMUG, SHRUG)
+ *   TITLE       맨 위 제목 배너 (1536x1024, 가운데 띠만 잘라 씀)
+ *   DEALER_*    딜러 배너 왼쪽 초상 — 잭 블랙 캐리커처, 표정 7가지 (IDLE, DEAL, SHOCK, SAD, LAUGH, SMUG, SHRUG)
  *   FACE        숫자 카드의 무늬 한두 개에 들어가는 얼굴 (1024x1024)
  *   BACK        카드 뒷면 (1024x1536)
  *
@@ -79,7 +80,7 @@ const buildPrompt = (id) => {
   const tail =
     item.type === 'court'
       ? (style.court || '').replaceAll('{rank}', id[0]).replaceAll('{suit}', SUIT[id[1]] ?? '')
-      : style.noText;
+      : item.noText === false ? '' : style.noText; // noText:false → 글자를 그려야 하는 항목(TITLE)
   const base = item.useStyle === false ? '' : style.base; // useStyle:false → 카드 화풍(카드지·테두리) 빼기
   return [item.prompt, base, tail].filter(Boolean).join('. ').replace(/\.\.+/g, '.');
 };

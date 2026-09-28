@@ -20,10 +20,10 @@
   <div class="app">
     <header class="topbar">
       <div class="bulbs" aria-hidden="true"></div>
+      <img class="title-art" id="title-art" alt="" hidden />
       <h1 class="title">
         <b class="orn" aria-hidden="true">♠</b><span class="gold">Jack Black</span><i>★ plays ★</i><span class="ivory">Black Jack</span><b class="orn" aria-hidden="true">♠</b>
       </h1>
-      <button class="info" id="show-disclaimer" aria-label="Disclaimer">i</button>
     </header>
 
     <section class="dealer-banner" aria-label="Dealer and score">
@@ -45,18 +45,18 @@
         <div class="hand" id="dealer-hand"></div>
       </section>
 
-      <section class="center">
-        <div class="panel" id="panel" aria-live="polite"></div>
-      </section>
+      <div class="felt-print" aria-hidden="true">Blackjack pays 3 to 2 <b>♠</b> Dealer stands on 17</div>
 
       <section class="player-area" aria-label="Player">
         <div class="hands" id="player-hands"></div>
       </section>
+
+      <div class="panel" id="panel" aria-live="polite"></div>
     </main>
 
     <footer class="foot">
       <span class="chips" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-      <span class="foot-text">Non-commercial fan-made parody · 교육·포트폴리오용 비상업적 팬메이드 패러디</span>
+      <button class="foot-text" id="show-disclaimer">ⓘ Disclaimer · 비상업적 팬메이드 패러디</button>
       <span class="chips" aria-hidden="true"><i></i><i></i><i></i></span>
     </footer>
   </div>

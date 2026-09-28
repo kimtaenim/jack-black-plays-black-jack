@@ -39,6 +39,12 @@ async function loadArt() {
 const artUrl = (id) => (art[id] ? `assets/cards/${art[id]}` : null);
 
 function applyArt() {
+  const title = artUrl('TITLE');
+  if (title) {
+    els.titleArt.src = title;
+    els.titleArt.hidden = false;
+    document.querySelector('.topbar').classList.add('has-art');
+  }
   document.documentElement.style.setProperty('--face', `url("${artUrl('FACE') ?? FALLBACK_FACE}")`);
 }
 
@@ -46,6 +52,7 @@ function applyArt() {
 const $ = (id) => document.getElementById(id);
 const els = {
   mood: $('mood'),
+  titleArt: $('title-art'),
   scoreBj: $('score-bj'),
   scoreWin: $('score-win'),
   scoreLose: $('score-lose'),
@@ -178,7 +185,7 @@ function imgEl(src, alt) {
 
 // ---------- game state ----------
 // No betting: every hand is a flat 1-unit game, only results are counted.
-const game = new BlackjackGame({ bankroll: Infinity });
+const game = new BlackjackGame({ bankroll: Infinity, rules: { maxHands: 1 } }); // no splitting
 const score = loadScore();
 
 function loadScore() {
@@ -213,36 +220,34 @@ const fitAll = () => document.querySelectorAll('.hand').forEach(fitHand);
 function render() {
   const inRound = game.phase === PHASE.PLAYER;
 
-  // Dealer (hole card stays hidden while the player acts)
-  els.dealerHand.replaceChildren(...game.dealer.map((c, i) => cardEl(c, inRound && i === 1)));
+  // Dealer (hole card stays hidden while the player acts). Before the first deal, both
+  // sides show face-down cards so the table is never empty.
+  const idle = !game.dealer.length;
+  els.dealerHand.replaceChildren(
+    ...(idle ? [cardEl(null, true), cardEl(null, true)] : game.dealer.map((c, i) => cardEl(c, inRound && i === 1))),
+  );
   if (!game.dealer.length) els.dealerTotal.textContent = '';
   else if (inRound) els.dealerTotal.textContent = handValue([game.dealer[0]]).total;
   else els.dealerTotal.textContent = handValue(game.dealer).total;
 
-  // Player hands
-  const multi = game.hands.length > 1;
-  els.playerHands.classList.toggle('multi', multi);
-  els.playerHands.replaceChildren(
-    ...(game.hands.length ? game.hands : [{ cards: [] }]).map((h, i) => {
-      const wrap = document.createElement('div');
-      wrap.className = 'player-hand';
-      if (inRound && multi && i === game.active) wrap.classList.add('active');
-      const title = document.createElement('h3');
-      let html = multi ? `Hand ${i + 1}` : 'You';
-      if (h.cards.length) {
-        const { total, soft } = handValue(h.cards);
-        html += ` <span class="total">${soft && total < 21 ? `soft ${total}` : total}</span>`;
-      }
-      const r = game.phase === PHASE.SETTLED ? game.results[i] : null;
-      if (r && multi) html += ` <span class="result ${r.outcome}">${OUTCOME[r.outcome].short}</span>`;
-      title.innerHTML = html;
-      const hand = document.createElement('div');
-      hand.className = 'hand';
-      hand.append(...h.cards.map((c) => cardEl(c)));
-      wrap.append(title, hand);
-      return wrap;
-    }),
-  );
+  // Player hand (one hand only — splitting is turned off)
+  const h = game.hands[0] ?? { cards: [] };
+  const wrap = document.createElement('div');
+  wrap.className = 'player-hand';
+  const title = document.createElement('h3');
+  title.textContent = 'You';
+  if (h.cards.length) {
+    const { total, soft } = handValue(h.cards);
+    const t = document.createElement('span');
+    t.className = 'total';
+    t.textContent = soft && total < 21 ? `soft ${total}` : total;
+    title.append(' ', t);
+  }
+  const hand = document.createElement('div');
+  hand.className = 'hand';
+  hand.append(...(idle ? [cardEl(null, true), cardEl(null, true)] : h.cards.map((c) => cardEl(c))));
+  wrap.append(title, hand);
+  els.playerHands.replaceChildren(wrap);
 
   renderScore();
   renderPanel();
@@ -251,11 +256,11 @@ function render() {
 
 // ---------- center panel: start / "one more card?" / result + scoreboard ----------
 const OUTCOME = {
-  blackjack: { big: 'Blackjack!!', short: 'BLACKJACK', tone: 'good' },
-  win: { big: 'You Win!', short: 'WIN', tone: 'good' },
-  push: { big: 'Push', short: 'PUSH', tone: 'even' },
-  lose: { big: 'Dealer Wins', short: 'LOSE', tone: 'bad' },
-  bust: { big: 'Bust!', short: 'BUST', tone: 'bad' },
+  blackjack: { big: 'Blackjack!!', tone: 'good' },
+  win: { big: 'You Win!', tone: 'good' },
+  push: { big: 'Push', tone: 'even' },
+  lose: { big: 'Dealer Wins', tone: 'bad' },
+  bust: { big: 'Bust!', tone: 'bad' },
 };
 
 function button(cls, label, sub, onClick) {
@@ -284,12 +289,11 @@ function renderPanel() {
 
   if (game.phase === PHASE.PLAYER) {
     head.className = 'ask';
-    head.innerHTML = `${game.hands.length > 1 ? `Hand ${game.active + 1} · ` : ''}한 장 더 받을까?<small>Hit me?</small>`;
+    head.innerHTML = '한 장 더 받을까?<small>Hit me?</small>';
     row.append(
       button('yes', 'YES', '더 받기', act(() => game.hit())),
       button('no', 'NO', '그만', act(() => game.stand())),
     );
-    if (game.actions().split) row.append(button('split', 'SPLIT', '나누기', act(() => game.split())));
   } else if (game.phase === PHASE.SETTLED) {
     const o = OUTCOME[headline(game.results)];
     p.classList.add('result-panel');
@@ -326,14 +330,7 @@ function setMood(mood) {
   els.dealerImg.parentElement.classList.add('pop');
 }
 
-function headline(results) {
-  if (results.length > 1) {
-    const w = results.filter((r) => r.outcome === 'win' || r.outcome === 'blackjack').length;
-    const l = results.filter((r) => r.outcome === 'lose' || r.outcome === 'bust').length;
-    return w > l ? 'win' : w === l ? 'push' : 'lose';
-  }
-  return results[0].outcome;
-}
+const headline = (results) => results[0].outcome;
 
 function act(fn) {
   return () => {
