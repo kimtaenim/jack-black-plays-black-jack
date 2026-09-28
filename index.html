@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jack Black Plays Black Jack</title>
+  <meta name="description" content="비상업적 학습용 팬 패러디 블랙잭 게임 / A non-commercial, educational fan-parody blackjack game." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="top">
+    <h1>Jack Black <span>plays</span> Black Jack</h1>
+    <div class="bank">
+      <span>Chips</span> <strong id="bankroll">1000</strong>
+    </div>
+  </header>
+
+  <main class="table">
+    <section class="seat" aria-label="Dealer">
+      <h2>Dealer <span class="total" id="dealer-total"></span></h2>
+      <div class="hand" id="dealer-hand"></div>
+    </section>
+
+    <div class="banner" id="banner" role="status" aria-live="polite">베팅하고 DEAL을 눌러 시작하세요! 🎸</div>
+
+    <section class="seat" aria-label="Player">
+      <div class="hands" id="player-hands"></div>
+    </section>
+
+    <section class="controls">
+      <div class="bet-row" id="bet-row">
+        <span class="bet-label">Bet <strong id="bet">0</strong></span>
+        <button class="chip" data-chip="10">10</button>
+        <button class="chip" data-chip="25">25</button>
+        <button class="chip" data-chip="100">100</button>
+        <button class="chip chip-clear" id="clear-bet">Clear</button>
+        <button class="btn primary" id="deal">Deal <kbd>Enter</kbd></button>
+      </div>
+      <div class="action-row">
+        <button class="btn" id="hit" disabled>Hit <kbd>H</kbd></button>
+        <button class="btn" id="stand" disabled>Stand <kbd>S</kbd></button>
+        <button class="btn" id="double" disabled>Double <kbd>D</kbd></button>
+        <button class="btn" id="split" disabled>Split <kbd>P</kbd></button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>
+      ⚠️ 비상업적 학습용 팬 패러디 프로젝트입니다. Jack Black 본인 및 관계사와 무관하며 승인·후원을 받지 않았습니다.
+      실제 돈이 오가지 않습니다.
+      <button class="link" id="show-disclaimer">면책 조항 보기 / Disclaimer</button>
+      · <a href="https://github.com/kimtaenim/jack-black-plays-black-jack">Source on GitHub</a>
+    </p>
+  </footer>
+
+  <dialog id="disclaimer" aria-labelledby="disclaimer-title">
+    <h2 id="disclaimer-title">면책 조항 · Disclaimer</h2>
+    <div class="disclaimer-body">
+      <ul>
+        <li><strong>학습용 프로젝트</strong>입니다. 게임 엔진·웹 개발·이미지 생성 API 사용법을 공부하기 위해 만들었습니다.</li>
+        <li><strong>상업적 이용이 아닙니다.</strong> 광고, 결제, 후원 요청이 없으며 어떤 수익도 얻지 않습니다.</li>
+        <li><strong>Jack Black 본인과 무관합니다.</strong> 그의 이름·이미지를 이용해 명예를 훼손하거나, 사칭하거나,
+          보증·후원을 받은 것처럼 보이게 하려는 의도가 전혀 없습니다. 존경을 담은 팬 패러디입니다.</li>
+        <li>카드 그림은 AI(OpenAI 이미지 API)로 생성한 <strong>캐리커처</strong>이며 실제 사진이 아닙니다.</li>
+        <li><strong>도박이 아닙니다.</strong> 칩은 가상이며 실제 돈이나 경품으로 바꿀 수 없습니다.</li>
+        <li>권리자의 요청이 있으면 해당 콘텐츠를 즉시 삭제합니다. (GitHub Issue로 연락해 주세요.)</li>
+      </ul>
+      <hr />
+      <ul lang="en">
+        <li>This is an <strong>educational</strong> project built to learn game logic, web development and image-generation APIs.</li>
+        <li>It is <strong>non-commercial</strong>: no ads, no payments, no donations, no revenue of any kind.</li>
+        <li>It is <strong>not affiliated with, endorsed by, or sponsored by Jack Black</strong> or any related company, and is not
+          intended to impersonate, disparage or exploit him. It is an affectionate fan parody.</li>
+        <li>Card art consists of AI-generated caricatures, not photographs.</li>
+        <li><strong>Not gambling.</strong> Chips are virtual and have no monetary value.</li>
+        <li>Content will be removed promptly on request from any rights holder (please open a GitHub issue).</li>
+      </ul>
+    </div>
+    <form method="dialog">
+      <button class="btn primary" id="accept-disclaimer" value="ok">이해했습니다 · I understand</button>
+    </form>
+  </dialog>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
