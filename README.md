@@ -53,6 +53,10 @@ game.results;     // [{ outcome: 'win' | 'blackjack' | 'push' | 'lose' | 'bust',
 `assets/cards/*.webp`와 `assets/cards/manifest.json`에 저장합니다. 게임은 manifest에 있는 이미지만 쓰고,
 없는 카드는 내장 이모지 그림으로 대체되므로 **이미지 없이도 게임은 동작**합니다.
 
+디자인은 빈티지 궁정 카드 스타일입니다(붉은 커튼·금박 타이틀·금테 펠트 테이블, 아이보리 카드와 금색 프레임).
+그림 카드는 **정사각형 상반신 그림 한 장**을 생성하고, 게임이 이를 위아래로 뒤집어 붙여 실제 카드처럼
+**양방향(double-ended)** 으로 보여줍니다. 숫자·무늬 인덱스도 게임이 직접 그리므로 이미지에는 글자를 넣지 않습니다.
+
 ```bash
 cp .env.example .env        # OPENAI_API_KEY 입력 (.env는 git에 올라가지 않음)
 node scripts/generate-cards.mjs --dry-run      # 프롬프트만 확인 (API 호출 없음)

@@ -5,7 +5,7 @@ const DISCLAIMER_KEY = 'jbpbj.disclaimer.v1';
 const START_BANKROLL = 1000;
 
 const SUIT_SYMBOL = { S: '♠', H: '♥', D: '♦', C: '♣' };
-const FALLBACK_ART = { J: '🤘', Q: '🎤', K: '🎸' };
+const FALLBACK_ART = { J: '🎸', Q: '🤘', K: '👉' };
 
 const OUTCOME_TEXT = {
   blackjack: 'BLACKJACK!',
@@ -64,6 +64,20 @@ const els = {
   disclaimer: $('disclaimer'),
 };
 
+// Classic pip positions [x%, y%] inside the card frame; pips below the middle are flipped.
+const PIPS = {
+  A: [[50, 50]],
+  2: [[50, 16], [50, 84]],
+  3: [[50, 16], [50, 50], [50, 84]],
+  4: [[30, 16], [70, 16], [30, 84], [70, 84]],
+  5: [[30, 16], [70, 16], [50, 50], [30, 84], [70, 84]],
+  6: [[30, 16], [70, 16], [30, 50], [70, 50], [30, 84], [70, 84]],
+  7: [[30, 16], [70, 16], [50, 33], [30, 50], [70, 50], [30, 84], [70, 84]],
+  8: [[30, 16], [70, 16], [50, 33], [30, 50], [70, 50], [50, 67], [30, 84], [70, 84]],
+  9: [[30, 16], [70, 16], [30, 39], [70, 39], [50, 50], [30, 61], [70, 61], [30, 84], [70, 84]],
+  10: [[30, 16], [70, 16], [50, 27], [30, 39], [70, 39], [30, 61], [70, 61], [50, 73], [30, 84], [70, 84]],
+};
+
 function cardEl(card, faceDown = false) {
   const div = document.createElement('div');
   div.className = 'card';
@@ -84,28 +98,42 @@ function cardEl(card, faceDown = false) {
   if (suit === 'H' || suit === 'D') div.classList.add('red');
   div.setAttribute('aria-label', `${rank}${sym}`);
 
-  const face = rank === 'J' || rank === 'Q' || rank === 'K';
-  if (face) {
+  const frame = document.createElement('div');
+  frame.className = 'frame';
+
+  if (rank === 'J' || rank === 'Q' || rank === 'K') {
+    // Double-ended court card: the same half-portrait, mirrored top and bottom.
+    div.classList.add('face');
     const url = artUrl(`${rank}${suit}`);
-    if (url) {
-      div.appendChild(imgEl(url, `${rank}${sym} card art`));
-    } else {
-      const fb = document.createElement('div');
-      fb.className = 'art-fallback';
-      fb.innerHTML = `<span>${FALLBACK_ART[rank]}<small>${sym} JB ${sym}</small></span>`;
-      div.appendChild(fb);
+    for (const pos of ['top', 'bottom']) {
+      const half = document.createElement('div');
+      half.className = `half ${pos}`;
+      if (url) {
+        half.appendChild(imgEl(url, pos === 'top' ? `${rank}${sym} card art` : ''));
+      } else {
+        half.classList.add('fallback');
+        half.innerHTML = `<span class="crown">👑</span><span class="who">${FALLBACK_ART[rank]}</span>`;
+      }
+      frame.appendChild(half);
     }
   } else {
-    const pip = document.createElement('div');
-    pip.className = 'pip';
-    pip.textContent = sym;
-    div.appendChild(pip);
+    if (rank === 'A') div.classList.add('ace');
+    for (const [x, y] of PIPS[rank]) {
+      const pip = document.createElement('span');
+      pip.className = 'pip';
+      if (y > 50) pip.classList.add('flip');
+      pip.style.left = `${x}%`;
+      pip.style.top = `${y}%`;
+      pip.textContent = sym;
+      frame.appendChild(pip);
+    }
   }
+  div.appendChild(frame);
 
   for (const pos of ['tl', 'br']) {
     const corner = document.createElement('div');
     corner.className = `corner ${pos}`;
-    corner.innerHTML = `<span>${rank}</span><span>${sym}</span>`;
+    corner.innerHTML = `<span class="r">${rank}</span><span class="s">${sym}</span>`;
     div.appendChild(corner);
   }
   return div;
@@ -131,7 +159,7 @@ function render() {
   const inRound = game.phase === PHASE.PLAYER;
   const settled = game.phase === PHASE.SETTLED;
 
-  els.bankroll.textContent = game.bankroll;
+  els.bankroll.textContent = fmt(game.bankroll);
   els.bet.textContent = bet;
 
   // Dealer
@@ -155,7 +183,7 @@ function render() {
         `${game.hands.length > 1 ? `Hand ${i + 1}` : 'You'} ` +
         `<span class="total">${soft && total < 21 ? `soft ${total}` : total}</span> ` +
         `<span class="muted">· bet ${h.bet}</span>` +
-        (r ? `<span class="result ${r.outcome}">${OUTCOME_TEXT[r.outcome]} ${r.net >= 0 ? '+' : ''}${r.net}</span>` : '');
+        (r ? `<span class="result ${r.outcome}">${OUTCOME_TEXT[r.outcome]} ${r.net >= 0 ? '+' : ''}${fmt(r.net)}</span>` : '');
       const hand = document.createElement('div');
       hand.className = 'hand';
       hand.append(...h.cards.map((c) => cardEl(c)));
@@ -179,6 +207,8 @@ function render() {
 
   store.set(STORAGE_KEY, String(game.bankroll));
 }
+
+const fmt = (n) => n.toLocaleString('en-US', { maximumFractionDigits: 1 });
 
 function announce(text) {
   els.banner.textContent = text;

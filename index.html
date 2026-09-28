@@ -5,15 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Jack Black Plays Black Jack</title>
   <meta name="description" content="비상업적 학습용 팬 패러디 블랙잭 게임 / A non-commercial, educational fan-parody blackjack game." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rye&family=Playfair+Display:wght@700;900&family=Noto+Sans+KR:wght@400;700&display=swap" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="top">
-    <h1>Jack Black <span>plays</span> Black Jack</h1>
-    <div class="bank">
-      <span>Chips</span> <strong id="bankroll">1000</strong>
-    </div>
+  <div class="curtain left" aria-hidden="true"></div>
+  <div class="curtain right" aria-hidden="true"></div>
+
+  <header class="marquee">
+    <h1 class="title">
+      <span class="line gold">Jack Black</span>
+      <span class="plays"><i>★</i> plays <i>★</i></span>
+      <span class="line ivory">Black Jack</span>
+    </h1>
   </header>
+
+  <div class="bank plaque">
+    <span>Chips</span> <strong id="bankroll">1000</strong>
+  </div>
 
   <main class="table">
     <section class="seat" aria-label="Dealer">

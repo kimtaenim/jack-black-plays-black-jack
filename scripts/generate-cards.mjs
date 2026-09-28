@@ -52,23 +52,29 @@ function parseArgs(argv) {
 }
 
 // ---------- prompt design ----------
+// Visual reference: vintage double-ended court cards — ermine-trimmed royal robes,
+// suit-motif crowns and scepters, ivory card stock, thin gold frame, bold ink outlines.
+// Court art is generated as a square HALF portrait; the game mirrors it top/bottom
+// (like a real double-ended playing card) and draws the rank/suit indices itself.
 const SUIT_THEMES = {
-  S: { name: 'Spades', theme: 'heavy-metal stage with black leather, spikes, smoke and dramatic lightning' },
-  H: { name: 'Hearts', theme: 'over-the-top power-ballad stage with red roses, hearts and pink spotlights' },
-  D: { name: 'Diamonds', theme: 'sparkly 70s glam-rock stage with sequins, disco ball and gold glitter' },
-  C: { name: 'Clubs', theme: 'chaotic school-band classroom rock show with chalkboard, amps and a green palette' },
+  S: { name: 'Spades', theme: 'black-and-gold robe covered in spade motifs, crown with spade-shaped points, scepter topped with a black spade' },
+  H: { name: 'Hearts', theme: 'crimson-and-gold robe covered in heart motifs, crown with heart-shaped jewels, scepter topped with a red heart' },
+  D: { name: 'Diamonds', theme: 'red-and-gold robe covered in diamond motifs, crown set with diamond-shaped rubies, scepter topped with a red diamond' },
+  C: { name: 'Clubs', theme: 'black-and-emerald robe covered in club motifs, crown with club-shaped finials, scepter topped with a black club' },
 };
 
 const RANK_ROLES = {
-  J: 'as the JACK: a mischievous jester-roadie mid-air jump with an electric guitar',
-  Q: 'as the QUEEN: a theatrical rock-opera royal in a flowing cape, belting a high note into a microphone',
-  K: 'as the KING: a triumphant rock-and-roll king on a throne of amplifiers, crown tilted, doing devil horns',
+  J: 'as the JACK: a cheeky young knave with a feathered cap, shredding an electric guitar, mid-shout with a wild grin',
+  Q: 'as the QUEEN: a theatrical rock royal with a tall ornate crown, throwing rock-and-roll devil horns with one hand, mouth wide open in a triumphant scream',
+  K: 'as the KING: a smug rock-and-roll monarch with a tilted crown, pointing straight at the viewer with one finger, eyebrow raised, holding a scepter',
 };
 
 const STYLE =
-  'Vintage playing-card illustration, bold ink outlines, flat saturated colors, ornate border, ' +
-  'humorous and affectionate cartoon caricature, exaggerated comedic facial expression, ' +
-  'portrait orientation, centered character, no text, no letters, no numbers, no logos.';
+  'Upper half of a vintage double-ended playing-card court figure: waist-up portrait, centered, ' +
+  'body cut off cleanly at the bottom edge at waist level, ermine-trimmed royal robe with gold chains. ' +
+  'Detailed classic playing-card illustration, bold ink outlines, rich saturated reds, blacks and golds, ' +
+  'ivory background, humorous and affectionate caricature with an exaggerated comedic expression. ' +
+  'No border, no frame, no text, no letters, no numbers, no card indices, no logos.';
 
 function buildJobs(subject) {
   const jobs = [];
@@ -76,29 +82,32 @@ function buildJobs(subject) {
     for (const rank of Object.keys(RANK_ROLES)) {
       jobs.push({
         id: `${rank}${suit}`,
-        prompt: `${subject} ${RANK_ROLES[rank]}. Setting: ${SUIT_THEMES[suit].theme}. ${STYLE}`,
+        size: '1024x1024',
+        prompt: `${subject} ${RANK_ROLES[rank]}. Costume: ${SUIT_THEMES[suit].theme}. ${STYLE}`,
       });
     }
   }
   jobs.push({
     id: 'BACK',
+    size: '1024x1536',
     prompt:
-      `Playing-card back design: a symmetrical ornate pattern built from electric guitars, ` +
-      `lightning bolts, flames and a small cartoon rocker face emblem in the center, ` +
-      `deep purple and gold, ${STYLE}`,
+      'Vintage casino playing-card back, full bleed, perfectly symmetrical: deep crimson velvet red ' +
+      'with an ornate gold filigree lattice, small gold spade, heart, diamond and club emblems, ' +
+      'a central gold medallion containing a crossed electric guitar and crown emblem, ' +
+      'thin ivory margin, rich red-black-gold theatre palette. No text, no letters, no faces.',
   });
   return jobs;
 }
 
 // ---------- OpenAI Images API ----------
-async function generateImage({ apiKey, model, quality, prompt }) {
+async function generateImage({ apiKey, model, quality, prompt, size }) {
   const res = await fetch('https://api.openai.com/v1/images/generations', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
       model,
       prompt,
-      size: '1024x1536',
+      size,
       quality,
       n: 1,
       output_format: 'webp',
@@ -173,7 +182,7 @@ async function main() {
     }
     process.stdout.write(`- ${job.id}: generating... `);
     try {
-      const img = await withRetry(() => generateImage({ apiKey, model, quality, prompt: job.prompt }));
+      const img = await withRetry(() => generateImage({ apiKey, model, quality, prompt: job.prompt, size: job.size }));
       await writeFile(dest, img);
       manifest.cards[job.id] = file;
       console.log(`ok (${Math.round(img.length / 1024)} KB)`);
