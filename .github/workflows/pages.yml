@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  # commits made by card-images (GITHUB_TOKEN) don't trigger push events, so redeploy after it
+  workflow_run:
+    workflows: [card-images]
+    types: [completed]
 
 permissions:
   contents: read
@@ -27,7 +31,7 @@ jobs:
 
   deploy:
     needs: test
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && (github.event_name != 'workflow_run' || github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     environment:
       name: github-pages

@@ -1,4 +1,5 @@
 import { BlackjackGame, PHASE, handValue } from './engine.js';
+import { QUOTES } from './quotes.js';
 
 const SCORE_KEY = 'jbpbj.score.v1';
 const DISCLAIMER_KEY = 'jbpbj.disclaimer.v2';
@@ -15,15 +16,6 @@ const OUTCOME_TEXT = {
   bust: 'BUST',
 };
 
-// Dealer banter (original parody lines, not real quotes).
-const BANTER = {
-  deal: ['자, 카드 나간다! 🎸', '록 스피릿을 믿어! 히트? 스탠드?', '내 눈썹을 봐. 떨리지?'],
-  blackjack: ['🔥 블랙잭?! 이건 록의 신이 내려준 패다!', '🤘 21! 딜러인 나도 기타 솔로 칠 뻔했어!'],
-  win: ['😱 네가 이겼어… 앰프 볼륨 11로 올려!', '🎸 좋아, 인정! 한 판 더?'],
-  push: ['😐 무승부. 앙코르 한 판 더?', '🥁 비겼다. 드럼 롤은 다음 기회에.'],
-  lose: ['😎 딜러 잭의 승리! ROCK ON!', '🤘 하우스는 언제나 로큰롤이지!'],
-  bust: ['💥 버스트! 앰프가 터졌다!', '🙈 22 이상… 너무 세게 쳤어!'],
-};
 const pick = (lines) => lines[Math.floor(Math.random() * lines.length)];
 
 // ---------- safe storage ----------
@@ -56,7 +48,10 @@ function applyArt() {
 // ---------- DOM ----------
 const $ = (id) => document.getElementById(id);
 const els = {
-  banner: $('banner'),
+  quoteEn: $('quote-en'),
+  quoteKo: $('quote-ko'),
+  quoteSrc: $('quote-src'),
+  dialogue: document.querySelector('.dialogue'),
   dealerImg: $('dealer-img'),
   dealerHand: $('dealer-hand'),
   dealerTotal: $('dealer-total'),
@@ -85,19 +80,26 @@ const PIPS = {
   10: [[30, 16], [70, 16], [50, 27], [30, 39], [70, 39], [30, 61], [70, 61], [50, 73], [30, 84], [70, 84]],
 };
 
-// Each pip shows a different part of the face (eyes, brows, grin, beard…).
-const FACE_CROPS = ['50% 42%', '30% 40%', '70% 40%', '50% 72%', '50% 58%', '38% 30%', '64% 30%', '50% 85%', '35% 62%', '65% 62%'];
-
-// A suit-shaped window onto the face image.
-function facePip(suit, cropIndex, { whole = false } = {}) {
+// A suit-shaped window showing Jack's face.
+function facePip(suit) {
   const pip = document.createElement('span');
-  pip.className = `pip suit-${suit}`;
+  pip.className = `pip face-pip suit-${suit}`;
   const face = document.createElement('span');
   face.className = 'pip-face';
-  if (whole) face.classList.add('whole');
-  else face.style.backgroundPosition = FACE_CROPS[cropIndex % FACE_CROPS.length];
   pip.appendChild(face);
   return pip;
+}
+
+// Only one or two pips per card carry the face; the rest are ordinary suit symbols.
+// The choice is fixed per card so the same card always looks the same.
+function facePipIndices(rank, suit, count) {
+  if (count === 1) return new Set([0]);
+  let h = 0;
+  for (const ch of rank + suit) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  const n = count >= 6 ? 2 : 1;
+  const picks = new Set();
+  for (let i = 0; picks.size < n; i++) picks.add((h + i * 7919) % count);
+  return picks;
 }
 
 function cardEl(card, faceDown = false) {
@@ -112,7 +114,7 @@ function cardEl(card, faceDown = false) {
       div.classList.add('has-art');
       div.appendChild(imgEl(url, ''));
     } else {
-      const medal = facePip('S', 0, { whole: true });
+      const medal = facePip('S');
       medal.classList.add('medallion');
       div.appendChild(medal);
     }
@@ -128,24 +130,34 @@ function cardEl(card, faceDown = false) {
   frame.className = 'frame';
 
   if (rank === 'J' || rank === 'Q' || rank === 'K') {
-    // Double-ended court card: the same half-portrait, mirrored top and bottom.
     div.classList.add('face');
     const url = artUrl(`${rank}${suit}`);
+    if (url) {
+      // Generated art is a complete card (indices included), so it fills the whole card.
+      div.classList.add('full-art');
+      div.appendChild(imgEl(url, `${rank}${sym}`));
+      return div;
+    }
+    // Fallback: double-ended court card built from two mirrored halves.
     for (const pos of ['top', 'bottom']) {
       const half = document.createElement('div');
-      half.className = `half ${pos}`;
-      if (url) {
-        half.appendChild(imgEl(url, pos === 'top' ? `${rank}${sym} card art` : ''));
-      } else {
-        half.classList.add('fallback');
-        half.innerHTML = `<span class="crown">${rank === 'J' ? '🎸' : '👑'}</span><span class="head"></span>`;
-      }
+      half.className = `half ${pos} fallback`;
+      half.innerHTML = `<span class="crown">${rank === 'J' ? '🎸' : '👑'}</span><span class="head"></span>`;
       frame.appendChild(half);
     }
   } else {
     if (rank === 'A') div.classList.add('ace');
-    PIPS[rank].forEach(([x, y], i) => {
-      const pip = facePip(suit, i, { whole: rank === 'A' });
+    const spots = PIPS[rank];
+    const faces = facePipIndices(rank, suit, spots.length);
+    spots.forEach(([x, y], i) => {
+      let pip;
+      if (faces.has(i)) {
+        pip = facePip(suit);
+      } else {
+        pip = document.createElement('span');
+        pip.className = 'pip';
+        pip.textContent = sym;
+      }
       if (y > 50) pip.classList.add('flip');
       pip.style.left = `${x}%`;
       pip.style.top = `${y}%`;
@@ -241,11 +253,15 @@ function render() {
   els.split.hidden = !inRound || !a.split;
 }
 
-function announce(text) {
-  els.banner.textContent = text;
-  els.banner.classList.remove('pop');
-  void els.banner.offsetWidth; // restart the animation
-  els.banner.classList.add('pop');
+// Dealer banner: a famous line in English + Korean, with its source.
+function say(key) {
+  const q = pick(QUOTES[key]);
+  els.quoteEn.textContent = `“${q.en}”`;
+  els.quoteKo.textContent = q.ko;
+  els.quoteSrc.textContent = `— ${q.src}`;
+  els.dialogue.classList.remove('pop');
+  void els.dialogue.offsetWidth; // restart the animation
+  els.dialogue.classList.add('pop');
 }
 
 function headline(results) {
@@ -260,9 +276,7 @@ function headline(results) {
 function afterAction() {
   if (game.phase === PHASE.SETTLED) {
     record(game.results);
-    announce(pick(BANTER[headline(game.results)]));
-  } else if (game.phase === PHASE.PLAYER && game.hands.length > 1) {
-    announce(`Hand ${game.active + 1} 차례야!`);
+    say(headline(game.results));
   }
   render();
 }
@@ -272,7 +286,7 @@ function act(fn) {
     try {
       fn();
     } catch (err) {
-      announce(err.message);
+      console.warn(err);
       return;
     }
     afterAction();
@@ -281,7 +295,7 @@ function act(fn) {
 
 els.deal.addEventListener('click', act(() => {
   game.deal(1);
-  announce(pick(BANTER.deal));
+  say('deal');
 }));
 els.hit.addEventListener('click', act(() => game.hit()));
 els.stand.addEventListener('click', act(() => game.stand()));
@@ -301,4 +315,5 @@ if (store.get(DISCLAIMER_KEY) !== '1') els.disclaimer.showModal();
 
 await loadArt();
 applyArt();
+say('welcome');
 render();

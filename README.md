@@ -1,8 +1,9 @@
 # 🎸 Jack Black plays Black Jack
 
-검은 양복을 입은 **딜러 잭 블랙**과 테이블을 사이에 두고 마주 앉아 블랙잭을 하는 브라우저 게임입니다.
-모든 카드의 ♠ ♥ ♦ ♣ 무늬 하나하나에 잭 블랙의 얼굴 일부가 작게 들어가고, J·Q·K는 잭 블랙이 왕이 된 궁정 카드입니다.
-휴대폰에 맞춰 만들었고, 화면 아래 버튼만 탭하면 됩니다.
+검은 양복을 입은 **딜러 잭 블랙**과 마주 앉아 블랙잭을 하는 브라우저 게임입니다.
+화면 위 가로 배너에서 딜러 잭이 상황마다 영화 명대사를 영어·한국어로 던지고
+(스쿨 오브 락, 쿵푸팬더, 나쵸 리브레, 마인크래프트 무비…), 숫자 카드마다 ♠♥♦♣ 무늬 한두 개에 잭의 얼굴이 숨어 있습니다.
+J·Q·K는 잭 블랙이 왕·여왕·잭이 된 궁정 카드입니다. 휴대폰에 맞춰 만들었고, 화면 아래 버튼만 탭하면 됩니다.
 
 ## ⚠️ Disclaimer (면책 조항)
 
@@ -50,30 +51,38 @@ game.results;     // [{ outcome: 'win' | 'blackjack' | 'push' | 'lose' | 'bust',
 ## 🎨 그림 만들기 (OpenAI API)
 
 게임에는 직접 그린 기본 캐릭터 그림(`assets/face.svg`, `assets/dealer.svg`)이 들어 있어서 **API 키 없이도 바로 플레이**할 수 있습니다.
-`scripts/generate-cards.mjs`로 OpenAI Images API(`gpt-image-1`) 그림을 만들면 자동으로 그 그림으로 바뀝니다.
+OpenAI 이미지 API로 그림을 만들면 자동으로 그 그림으로 바뀝니다.
+프롬프트는 전부 [`data/card-prompts.json`](data/card-prompts.json)에 있으니 거기서 고치면 됩니다.
 
-| ID | 용도 |
-| --- | --- |
-| `FACE` | 모든 숫자 카드의 ♠♥♦♣ 무늬 안에 들어가는 얼굴 (무늬마다 다른 부위가 보이도록 잘라 씀) |
-| `DEALER` | 테이블 건너편에 앉은 검은 양복 차림의 딜러 |
-| `JS` … `KC` | J·Q·K 12장. 상반신 그림을 위아래로 뒤집어 붙여 양방향 궁정 카드로 표시 |
-| `BACK` | 카드 뒷면 |
+| ID | 용도 | 크기 |
+| --- | --- | --- |
+| `JS` … `KC` | J·Q·K 12장. 모서리 표시까지 들어간 **카드 한 장 전체** | 1024x1536 |
+| `DEALER` | 딜러 배너 왼쪽 초상 (검은 양복) | 1024x1024 |
+| `FACE` | 숫자 카드 무늬 한두 개에 들어가는 얼굴 | 1024x1024 |
+| `BACK` | 카드 뒷면 | 1024x1536 |
+
+**방법 1 — GitHub Actions (추천)**
+
+1. **Settings → Secrets and variables → Actions → New repository secret**: `OPENAI_API_KEY`
+2. **Actions → card-images → Run workflow** (특정 카드만: `only`에 `QS,KH` 처럼 입력)
+3. 생성된 그림이 자동으로 커밋되고, `main`이면 Pages 배포까지 이어서 돕니다.
+
+**방법 2 — 로컬**
 
 ```bash
-cp .env.example .env                           # OPENAI_API_KEY 입력 (.env는 git에 올라가지 않음)
-node scripts/generate-cards.mjs --dry-run      # 프롬프트만 확인 (API 호출 없음)
-node scripts/generate-cards.mjs --only FACE,DEALER   # 먼저 몇 장만 테스트
-node scripts/generate-cards.mjs                # 전체 15장 (이미 있는 파일은 건너뜀)
-node scripts/generate-cards.mjs --force        # 전부 다시 생성
+cp .env.example .env                                  # OPENAI_API_KEY 입력 (.env는 git에 올라가지 않음)
+node scripts/generate-cards.mjs --dry-run             # 프롬프트만 확인 (API 호출 없음)
+node scripts/generate-cards.mjs --only QS,KH          # 먼저 두 장만
+node scripts/generate-cards.mjs                       # 아직 없는 것 전부 (최대 15장)
+node scripts/generate-cards.mjs --list-missing        # 아직 없는 ID 목록
 ```
 
-옵션: `--quality low|medium|high`, `--model <모델명>`, `--subject "<그릴 대상 설명>"`.
-생성된 `assets/cards/`를 커밋·푸시하면 GitHub Pages에 반영됩니다.
+옵션: `--model` (기본 `gpt-image-2`, 없으면 `gpt-image-1`로 자동 대체), `--quality low|medium|high` (기본 medium),
+`--force`, `--concurrency`, `--max-width` (cwebp가 있으면 저장 전에 축소, 기본 640px).
 
-- 🔑 **API 키는 절대 커밋하거나 프론트엔드 코드에 넣지 마세요.** 그림은 로컬에서 한 번 만들어 정적 파일로 배포하므로 플레이어에게는 키가 필요 없습니다.
+- 🔑 API 키는 절대 커밋하거나 프론트엔드 코드에 넣지 마세요. 플레이어에게는 키가 필요 없습니다.
 - 💰 이미지 생성은 유료입니다. `--only`로 한두 장 먼저 확인하세요.
-- 🚫 OpenAI 콘텐츠 정책상 실존 인물을 그리는 요청은 거부될 수 있습니다. 거부된 그림은 기본 그림으로 대체되며,
-  이 경우 `--subject`로 특정 인물이 아닌 오리지널 캐릭터 묘사로 바꾸는 것을 권장합니다.
+- 🚫 안전 필터에 걸린 항목은 `SAFETY`로 표시됩니다. 해당 프롬프트를 고친 뒤 `--only`로 다시 돌리세요.
 
 ## 🚀 GitHub Pages로 공개하기
 
@@ -84,11 +93,14 @@ node scripts/generate-cards.mjs --force        # 전부 다시 생성
 ## 📁 구조
 
 ```
-index.html                  게임 화면 (딜러석, 테이블, 점수판, 하단 버튼, 면책 조항)
+index.html                  게임 화면 (딜러 배너, 테이블, 점수판, 하단 버튼, 면책 조항)
 style.css                   스타일 (모바일 우선)
 src/engine.js               블랙잭 엔진 (순수 로직)
-src/main.js                 UI ↔ 엔진 연결, 얼굴 무늬 카드 렌더링
+src/main.js                 UI ↔ 엔진 연결, 카드 렌더링
+src/quotes.js               딜러 명대사 (영어·한국어·출처)
+data/card-prompts.json      그림 생성 프롬프트
 scripts/generate-cards.mjs  OpenAI 그림 생성 스크립트
+.github/workflows/          Pages 배포, 그림 생성(card-images)
 assets/face.svg, dealer.svg 기본 캐릭터 그림
 assets/cards/               생성된 그림 + manifest.json
 tests/engine.test.js        엔진 테스트

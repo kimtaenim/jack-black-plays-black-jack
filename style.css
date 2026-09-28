@@ -149,55 +149,79 @@ body {
   flex-direction: column;
   align-items: center;
   width: calc(100% - 2 * var(--curtain-w) - 12px);
-  max-width: 980px;
+  max-width: 760px;
   margin: 8px auto 12px;
 }
 
-.dealer-seat {
+/* Game-style dialogue banner: portrait on the left, famous line (EN + KO) on the right */
+.dealer-banner {
   position: relative;
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  border: 2px solid var(--gold);
+  background:
+    linear-gradient(90deg, rgba(142, 16, 23, 0.35), transparent 45%),
+    linear-gradient(180deg, #221611, #0c0705);
+  box-shadow: 0 0 0 3px #0b0706, 0 0 0 4px var(--gold-deep), 0 10px 26px rgba(0, 0, 0, 0.65);
+  overflow: hidden;
+}
+.dealer-banner .portrait {
+  flex: none;
+  width: clamp(92px, 26vw, 170px);
+  aspect-ratio: 1;
+  align-self: center;
+  margin: 8px;
+  border-radius: 10px;
+  border: 2px solid var(--gold);
+  background: radial-gradient(circle at 50% 35%, #3a2418, #120a07 75%);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 2px #0b0706;
+}
+.dealer-banner .portrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 8%;
+}
+.dialogue {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  width: 100%;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 14px 10px 6px;
 }
-.dealer-figure {
-  display: block;
-  height: clamp(118px, 22vh, 230px);
-  width: auto;
-  max-width: 90%;
-  object-fit: contain;
-  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.7));
-  margin-bottom: calc(clamp(118px, 22vh, 230px) * -0.2); /* the table rail hides his waist */
-  position: relative;
-  z-index: 0;
+.dialogue.pop { animation: pop 0.25s ease-out; }
+@keyframes pop { from { opacity: 0.3; transform: translateX(6px); } to { opacity: 1; transform: none; } }
+.nameplate {
+  align-self: flex-start;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: var(--gold-grad);
+  color: #2a1508;
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
 }
-
-.speech {
-  position: relative;
-  z-index: 2;
-  max-width: min(92%, 520px);
-  margin-bottom: 8px;
-  padding: 8px 14px;
-  border-radius: 14px;
-  background: var(--ivory);
-  color: #1b1208;
+.nameplate span { font-family: var(--sans); letter-spacing: 0; margin-left: 4px; font-weight: 700; }
+.dialogue p { margin: 0; }
+.quote-en {
+  font-family: var(--serif);
   font-weight: 700;
-  font-size: clamp(0.85rem, 3.4vw, 1.05rem);
-  text-align: center;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), 0 0 0 2px var(--gold-deep);
+  font-style: italic;
+  font-size: clamp(0.98rem, 3.9vw, 1.4rem);
+  line-height: 1.25;
+  color: var(--gold-hi);
 }
-.speech::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: -9px;
-  translate: -50% 0;
-  border: 9px solid transparent;
-  border-bottom: 0;
-  border-top-color: var(--ivory);
-}
-.speech.pop { animation: pop 0.25s ease-out; }
-@keyframes pop { from { transform: scale(0.9); opacity: 0.4; } to { transform: none; opacity: 1; } }
+.quote-ko { font-size: clamp(0.82rem, 3.2vw, 1.02rem); color: var(--ink); line-height: 1.35; }
+.quote-src { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.03em; }
 
 /* ---------- table ---------- */
 .table {
@@ -208,7 +232,7 @@ body {
   flex-direction: column;
   gap: 10px;
   padding: clamp(10px, 3vw, 24px) clamp(8px, 3vw, 24px) clamp(16px, 4vw, 32px);
-  border-radius: 90px 90px 28px 28px / 40px 40px 28px 28px;
+  border-radius: 28px;
   border: 7px solid transparent;
   background:
     radial-gradient(ellipse at 50% 30%, var(--felt) 0%, var(--felt-dark) 90%) padding-box,
@@ -241,6 +265,25 @@ body {
   letter-spacing: 0;
 }
 .total:empty { display: none; }
+
+.felt-print {
+  text-align: center;
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(233, 196, 106, 0.55);
+  margin: 2px 0;
+}
+.felt-print span {
+  display: block;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 1.15rem;
+  letter-spacing: 0.12em;
+  color: rgba(233, 196, 106, 0.4);
+}
 
 .hand {
   display: flex;
@@ -314,52 +357,53 @@ body {
 .card .corner.tl { top: 4px; left: 2px; }
 .card .corner.br { bottom: 4px; right: 2px; transform: rotate(180deg); }
 
-/* Face pips: each suit symbol is a window showing part of the face.
-   The outer span draws a suit-coloured outline, the inner span is the masked face. */
+/* Plain pips are suit symbols; one or two per card are face pips —
+   a suit-shaped window onto Jack's face with a suit-coloured outline. */
 .card .pip {
-  --pip: calc(var(--card-w) * 0.24);
   position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: calc(var(--card-w) * 0.22);
+  line-height: 1;
+}
+.card .pip.flip { transform: translate(-50%, -50%) rotate(180deg); }
+.card.ace .pip { font-size: calc(var(--card-w) * 0.5); }
+.card .face-pip {
+  --pip: calc(var(--card-w) * 0.25);
   width: var(--pip);
   height: var(--pip);
-  transform: translate(-50%, -50%);
   filter:
     drop-shadow(1px 0 0 currentColor) drop-shadow(-1px 0 0 currentColor)
     drop-shadow(0 1px 0 currentColor) drop-shadow(0 -1px 0 currentColor);
 }
-.card .pip.flip { transform: translate(-50%, -50%) rotate(180deg); }
-.card.ace .pip { --pip: calc(var(--card-w) * 0.62); }
+.card.ace .face-pip { --pip: calc(var(--card-w) * 0.62); }
 .pip-face {
   display: block;
   width: 100%;
   height: 100%;
-  background-image: var(--face);
-  background-size: 230%;
-  background-repeat: no-repeat;
-  background-color: #f0c19a;
+  background: #f0c19a var(--face) 50% 38% / 125% no-repeat;
   -webkit-mask: var(--mask) center / contain no-repeat;
   mask: var(--mask) center / contain no-repeat;
 }
-.pip-face.whole { background-size: cover; background-position: center 40%; }
 .pip.suit-S { --mask: var(--mask-S); }
 .pip.suit-H { --mask: var(--mask-H); }
 .pip.suit-D { --mask: var(--mask-D); }
 .pip.suit-C { --mask: var(--mask-C); }
-/* a light suit-colour wash keeps red and black suits distinguishable */
-.card.red .pip-face { box-shadow: inset 0 0 0 999px rgba(179, 18, 27, 0.18); }
-.card:not(.red) .pip-face { box-shadow: inset 0 0 0 999px rgba(20, 20, 20, 0.12); }
 
-/* double-ended court card: the same half-portrait, mirrored */
-.card .half { position: relative; flex: 1; overflow: hidden; }
-.card .half.bottom { transform: rotate(180deg); }
-.card .half.top { border-bottom: 1px solid var(--gold-deep); }
-.card .half .art {
+/* generated court art is a complete card image */
+.card.full-art { overflow: hidden; background: var(--ivory); }
+.card.full-art > .art {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 50% 15%;
+  border-radius: inherit;
 }
+
+/* double-ended court card: the same half-portrait, mirrored */
+.card .half { position: relative; flex: 1; overflow: hidden; }
+.card .half.bottom { transform: rotate(180deg); }
+.card .half.top { border-bottom: 1px solid var(--gold-deep); }
 .card .half.fallback {
   display: flex;
   flex-direction: column;
@@ -482,7 +526,11 @@ dialog form { display: flex; justify-content: center; margin-top: 12px; }
 
 @media (min-width: 720px) {
   :root { --bar-h: 84px; }
-  .table { border-width: 9px; border-radius: 200px 200px 36px 36px / 70px 70px 36px 36px; }
+  .table { border-width: 9px; border-radius: 36px; }
+  .quote-en { font-size: 1.65rem; }
+  .quote-ko { font-size: 1.1rem; }
+  .quote-src { font-size: 0.8rem; }
+  .nameplate { font-size: 0.8rem; }
 }
 
 /* phones: fit title, dealer and both hands above the action bar */
@@ -496,12 +544,15 @@ dialog form { display: flex; justify-content: center; margin-top: 12px; }
   .score { flex-direction: row; gap: 6px; align-items: baseline; justify-content: center; padding: 3px 8px; }
   .score strong { font-size: 1.1rem; }
   .stage { margin-top: 6px; }
-  .speech { margin-bottom: 6px; padding: 6px 12px; }
-  .dealer-figure { height: clamp(90px, 16vh, 150px); margin-bottom: calc(clamp(90px, 16vh, 150px) * -0.2); }
+  .dealer-banner { margin-bottom: 8px; }
+  .dealer-banner .portrait { width: clamp(78px, 24vw, 110px); margin: 6px; }
+  .dialogue { padding: 6px 10px 6px 2px; gap: 2px; }
+  .felt-print { font-size: 0.55rem; }
+  .felt-print span { font-size: 0.9rem; }
   .table { gap: 4px; padding-top: 8px; padding-bottom: 12px; }
   .seat h2, .player-hand h3 { font-size: 0.78rem; margin-bottom: 4px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card, .speech.pop { animation: none; }
+  .card, .dialogue.pop { animation: none; }
 }

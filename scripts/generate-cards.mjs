@@ -1,236 +1,254 @@
 #!/usr/bin/env node
-// Generates card artwork with the OpenAI Images API and writes it to assets/cards/.
-//
-//   OPENAI_API_KEY=sk-... node scripts/generate-cards.mjs            # court cards, dealer, pip face, back (15 images)
-//   OPENAI_API_KEY=sk-... node scripts/generate-cards.mjs --only KS  # a single card
-//   OPENAI_API_KEY=sk-... node scripts/generate-cards.mjs --force    # regenerate existing files
-//   node scripts/generate-cards.mjs --dry-run                        # print prompts, no API calls
-//
-// Options (env or flags):
-//   OPENAI_IMAGE_MODEL / --model    default gpt-image-1
-//   OPENAI_IMAGE_QUALITY / --quality low | medium | high (default medium)
-//   CARD_SUBJECT / --subject        who/what is drawn (see README for the likeness caveat)
-//
-// The API key is only read from the environment (or a local .env file) and is never
-// written anywhere. Generated images are meant to be committed so the static site
-// can be played without any key.
+/**
+ * 카드·딜러 그림 생성기 (OpenAI Images API)
+ *
+ *   OPENAI_API_KEY=sk-... node scripts/generate-cards.mjs
+ *
+ * 프롬프트는 전부 data/card-prompts.json 에 있다 (공통 화풍 style + 항목별 items).
+ * 결과는 assets/cards/<ID>.webp 로 저장하고 assets/cards/manifest.json 에 등록한다.
+ * 게임은 manifest 에 있는 그림만 쓰고, 없는 건 내장 그림으로 대신한다.
+ * 이미 있는 파일은 건너뛰므로 중간에 끊겨도 다시 실행하면 이어서 만든다.
+ *
+ *   ID          용도
+ *   JS … KC     J·Q·K 12장 (카드 한 장 전체를 그림, 1024x1536)
+ *   DEALER      딜러 배너 왼쪽 초상 (검은 양복, 1024x1024)
+ *   FACE        숫자 카드의 무늬 한두 개에 들어가는 얼굴 (1024x1024)
+ *   BACK        카드 뒷면 (1024x1536)
+ *
+ * 옵션
+ *   --only QS,KH,FACE  지정한 ID만 생성 (쉼표 구분)
+ *   --force            이미 있는 파일도 다시 생성
+ *   --model <이름>     기본 gpt-image-2 (없는 모델이면 gpt-image-1 로 자동 대체)
+ *   --quality <등급>   low | medium | high   (기본 medium)
+ *   --concurrency <n>  동시 요청 수          (기본 3)
+ *   --max-width <px>   저장 전에 cwebp 로 이 너비로 축소 (기본 640, 0이면 원본 유지)
+ *   --dry-run          호출 없이 최종 프롬프트만 출력
+ *   --list-missing     아직 없는 ID만 나열하고 종료
+ *
+ * API 키는 환경 변수나 로컬 .env 에서만 읽고 어디에도 기록하지 않는다.
+ */
 
-import { mkdir, readFile, writeFile, access } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
+import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const OUT_DIR = path.join(ROOT, 'assets', 'cards');
+const PROMPTS_FILE = path.join(ROOT, 'data/card-prompts.json');
+const OUT_DIR = path.join(ROOT, 'assets/cards');
 const MANIFEST = path.join(OUT_DIR, 'manifest.json');
+const ENDPOINT = process.env.OPENAI_IMAGES_ENDPOINT || 'https://api.openai.com/v1/images/generations';
 
-// ---------- tiny .env loader (no dependencies) ----------
-async function loadDotEnv() {
-  try {
-    const text = await readFile(path.join(ROOT, '.env'), 'utf8');
-    for (const line of text.split('\n')) {
-      const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
-      if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].replace(/^['"]|['"]$/g, '');
-    }
-  } catch {
-    // no .env — fine
+const SUIT = { S: '♠', H: '♥', D: '♦', C: '♣' };
+
+/* ── .env (의존성 없이) ───────────────────────────────────── */
+try {
+  for (const line of fs.readFileSync(path.join(ROOT, '.env'), 'utf8').split('\n')) {
+    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/);
+    if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].replace(/^['"]|['"]$/g, '');
   }
+} catch {
+  /* .env 없음 */
 }
 
-function parseArgs(argv) {
-  const args = { force: false, dryRun: false, only: null };
-  for (let i = 0; i < argv.length; i++) {
-    const a = argv[i];
-    if (a === '--force') args.force = true;
-    else if (a === '--dry-run') args.dryRun = true;
-    else if (a === '--only') args.only = argv[++i].split(',').map((s) => s.trim().toUpperCase());
-    else if (a === '--model') args.model = argv[++i];
-    else if (a === '--quality') args.quality = argv[++i];
-    else if (a === '--subject') args.subject = argv[++i];
-    else throw new Error(`Unknown argument: ${a}`);
-  }
-  return args;
-}
-
-// ---------- prompt design ----------
-// Visual reference: vintage double-ended court cards — ermine-trimmed royal robes,
-// suit-motif crowns and scepters, ivory card stock, thin gold frame, bold ink outlines.
-// Court art is generated as a square HALF portrait; the game mirrors it top/bottom
-// (like a real double-ended playing card) and draws the rank/suit indices itself.
-const SUIT_THEMES = {
-  S: { name: 'Spades', theme: 'black-and-gold robe covered in spade motifs, crown with spade-shaped points, scepter topped with a black spade' },
-  H: { name: 'Hearts', theme: 'crimson-and-gold robe covered in heart motifs, crown with heart-shaped jewels, scepter topped with a red heart' },
-  D: { name: 'Diamonds', theme: 'red-and-gold robe covered in diamond motifs, crown set with diamond-shaped rubies, scepter topped with a red diamond' },
-  C: { name: 'Clubs', theme: 'black-and-emerald robe covered in club motifs, crown with club-shaped finials, scepter topped with a black club' },
+/* ── 인자 파싱 ────────────────────────────────────────────── */
+const argv = process.argv.slice(2);
+const flag = (name) => argv.includes(`--${name}`);
+const opt = (name, dflt) => {
+  const i = argv.indexOf(`--${name}`);
+  return i >= 0 && argv[i + 1] ? argv[i + 1] : dflt;
 };
 
-const RANK_ROLES = {
-  J: 'as the JACK: a cheeky young knave with a feathered cap, shredding an electric guitar, mid-shout with a wild grin',
-  Q: 'as the QUEEN: a theatrical rock royal with a tall ornate crown, throwing rock-and-roll devil horns with one hand, mouth wide open in a triumphant scream',
-  K: 'as the KING: a smug rock-and-roll monarch with a tilted crown, pointing straight at the viewer with one finger, eyebrow raised, holding a scepter',
+const OPTS = {
+  only: (opt('only', '').toUpperCase().match(/[A-Z]+/g) || []),
+  force: flag('force'),
+  model: opt('model', process.env.CARD_IMAGE_MODEL || 'gpt-image-2'),
+  quality: opt('quality', 'medium'),
+  concurrency: Math.max(1, Number(opt('concurrency', '3')) || 3),
+  maxWidth: Math.max(0, Number(opt('max-width', '640')) || 0),
+  dryRun: flag('dry-run'),
+  listMissing: flag('list-missing'),
 };
 
-const STYLE =
-  'Upper half of a vintage double-ended playing-card court figure: waist-up portrait, centered, ' +
-  'body cut off cleanly at the bottom edge at waist level, ermine-trimmed royal robe with gold chains. ' +
-  'Detailed classic playing-card illustration, bold ink outlines, rich saturated reds, blacks and golds, ' +
-  'ivory background, humorous and affectionate caricature with an exaggerated comedic expression. ' +
-  'No border, no frame, no text, no letters, no numbers, no card indices, no logos.';
+/* ── 프롬프트 ─────────────────────────────────────────────── */
+const { style = {}, items = {} } = JSON.parse(fs.readFileSync(PROMPTS_FILE, 'utf8'));
 
-function buildJobs(subject) {
-  const jobs = [];
-  for (const suit of Object.keys(SUIT_THEMES)) {
-    for (const rank of Object.keys(RANK_ROLES)) {
-      jobs.push({
-        id: `${rank}${suit}`,
-        size: '1024x1024',
-        prompt: `${subject} ${RANK_ROLES[rank]}. Costume: ${SUIT_THEMES[suit].theme}. ${STYLE}`,
-      });
-    }
-  }
-  jobs.push({
-    id: 'DEALER',
-    size: '1024x1024',
-    background: 'transparent',
-    prompt:
-      `${subject} as a casino blackjack dealer, wearing a sharp black suit, crisp white shirt and a slim ` +
-      'black tie, seated and facing the viewer across the table, waist-up, both hands resting just below ' +
-      'the frame, confident mischievous grin with one eyebrow raised. Bold ink outlines, rich colors, ' +
-      'humorous and affectionate caricature. Isolated character on a transparent background, ' +
-      'no table, no cards, no text, no logos.',
-  });
-  jobs.push({
-    id: 'FACE',
-    size: '1024x1024',
-    background: 'transparent',
-    prompt:
-      `${subject}, close-up of the head only, front-facing, the face filling most of the frame ` +
-      'from hairline to chin, big grin, one eyebrow raised, bold ink outlines and flat saturated colors ' +
-      '(it will be shown tiny inside playing-card suit symbols, so keep features large and readable). ' +
-      'Transparent background, no text, no logos.',
-  });
-  jobs.push({
-    id: 'BACK',
-    size: '1024x1536',
-    prompt:
-      'Vintage casino playing-card back, full bleed, perfectly symmetrical: deep crimson velvet red ' +
-      'with an ornate gold filigree lattice, small gold spade, heart, diamond and club emblems, ' +
-      'a central gold medallion containing a crossed electric guitar and crown emblem, ' +
-      'thin ivory margin, rich red-black-gold theatre palette. No text, no letters, no faces.',
-  });
-  return jobs;
+const sizeOf = (id) => items[id].size || (items[id].type === 'court' ? '1024x1536' : '1024x1024');
+const buildPrompt = (id) => {
+  const item = items[id];
+  const tail =
+    item.type === 'court'
+      ? (style.court || '').replaceAll('{rank}', id[0]).replaceAll('{suit}', SUIT[id[1]] ?? '')
+      : style.noText;
+  const base = item.useStyle === false ? '' : style.base; // useStyle:false → 카드 화풍(카드지·테두리) 빼기
+  return [item.prompt, base, tail].filter(Boolean).join('. ').replace(/\.\.+/g, '.');
+};
+
+const outFile = (id) => path.join(OUT_DIR, `${id}.webp`);
+const unknown = OPTS.only.filter((id) => !items[id]);
+if (unknown.length) console.warn(`! card-prompts.json 에 없는 ID (건너뜀): ${unknown.join(', ')}`);
+
+let targets = Object.keys(items).filter((id) => !OPTS.only.length || OPTS.only.includes(id));
+if (OPTS.listMissing) {
+  console.log(targets.filter((id) => !fs.existsSync(outFile(id))).join('\n') || '(없음)');
+  process.exit(0);
+}
+if (!OPTS.force && !OPTS.dryRun) targets = targets.filter((id) => !fs.existsSync(outFile(id)));
+
+if (OPTS.dryRun) {
+  for (const id of targets) console.log(`[${id}] ${sizeOf(id)}\n${buildPrompt(id)}\n`);
+  process.exit(0);
 }
 
-// ---------- OpenAI Images API ----------
-async function generateImage({ apiKey, model, quality, prompt, size, background }) {
-  const res = await fetch('https://api.openai.com/v1/images/generations', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({
-      model,
-      prompt,
-      size,
-      quality,
-      n: 1,
-      ...(background ? { background } : {}),
-      output_format: 'webp',
-      output_compression: 80,
-    }),
-  });
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const msg = body?.error?.message ?? res.statusText;
-    const err = new Error(`${res.status} ${msg}`);
-    err.status = res.status;
-    err.code = body?.error?.code;
-    throw err;
-  }
-  const b64 = body?.data?.[0]?.b64_json;
-  if (!b64) throw new Error('No image data in response');
-  return Buffer.from(b64, 'base64');
+const API_KEY = process.env.OPENAI_API_KEY;
+if (!API_KEY) {
+  console.error('OPENAI_API_KEY 가 없습니다. 환경 변수나 .env 에 넣어 주세요.');
+  process.exit(1);
 }
 
-async function withRetry(fn, tries = 4) {
-  for (let i = 0; ; i++) {
+/* ── 축소 (cwebp 가 있으면) ──────────────────────────────── */
+const HAS_CWEBP = spawnSync('cwebp', ['-version'], { stdio: 'ignore' }).status === 0;
+const WILL_SHRINK = OPTS.maxWidth > 0 && HAS_CWEBP;
+function shrink(file) {
+  if (!WILL_SHRINK) return;
+  const tmp = `${file}.tmp.webp`;
+  const r = spawnSync('cwebp', ['-quiet', '-q', '82', '-resize', String(OPTS.maxWidth), '0', '-metadata', 'none', file, '-o', tmp], {
+    stdio: 'ignore',
+  });
+  if (r.status === 0 && fs.existsSync(tmp) && fs.statSync(tmp).size > 0) fs.renameSync(tmp, file);
+  else {
+    try { fs.unlinkSync(tmp); } catch {}
+    console.warn(`  · ${path.basename(file)} 축소 실패 — 원본 크기로 둡니다.`);
+  }
+}
+
+/* ── API 호출 ─────────────────────────────────────────────── */
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/* 모델·파라미터 지원 범위는 계정과 모델 세대마다 달라서, 서버가 거부하면 깎아내며 재시도한다 */
+let model = OPTS.model;
+const dropped = new Set();
+
+function body(id) {
+  const b = {
+    model,
+    prompt: buildPrompt(id),
+    n: 1,
+    size: sizeOf(id),
+    quality: OPTS.quality,
+    output_format: 'webp',
+    output_compression: 85,
+    moderation: 'low',
+  };
+  for (const k of dropped) delete b[k];
+  return b;
+}
+
+async function generate(id) {
+  const MAX = 6;
+  for (let attempt = 1; attempt <= MAX; attempt++) {
+    let res, text;
     try {
-      return await fn();
+      res = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${API_KEY}` },
+        body: JSON.stringify(body(id)),
+      });
+      text = await res.text();
     } catch (err) {
-      const retriable = err.status === 429 || (err.status >= 500 && err.status < 600);
-      if (!retriable || i >= tries - 1) throw err;
-      const wait = 2000 * 2 ** i;
-      console.warn(`  retrying in ${wait / 1000}s (${err.message})`);
-      await new Promise((r) => setTimeout(r, wait));
-    }
-  }
-}
-
-const exists = (p) => access(p).then(() => true, () => false);
-
-async function main() {
-  await loadDotEnv();
-  const args = parseArgs(process.argv.slice(2));
-  const model = args.model ?? process.env.OPENAI_IMAGE_MODEL ?? 'gpt-image-1';
-  const quality = args.quality ?? process.env.OPENAI_IMAGE_QUALITY ?? 'medium';
-  const subject =
-    args.subject ??
-    process.env.CARD_SUBJECT ??
-    'A friendly cartoon caricature of comedic actor and rock musician Jack Black';
-
-  let jobs = buildJobs(subject);
-  if (args.only) jobs = jobs.filter((j) => args.only.includes(j.id));
-  if (!jobs.length) throw new Error('No matching cards for --only');
-
-  if (args.dryRun) {
-    for (const j of jobs) console.log(`[${j.id}] ${j.prompt}\n`);
-    return;
-  }
-
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    console.error('OPENAI_API_KEY is not set. Put it in your environment or a local .env file.');
-    process.exit(1);
-  }
-
-  await mkdir(OUT_DIR, { recursive: true });
-  const manifest = (await exists(MANIFEST)) ? JSON.parse(await readFile(MANIFEST, 'utf8')) : { cards: {} };
-
-  const failed = [];
-  for (const job of jobs) {
-    const file = `${job.id}.webp`;
-    const dest = path.join(OUT_DIR, file);
-    if (!args.force && (await exists(dest))) {
-      console.log(`- ${job.id}: exists, skipping (use --force to regenerate)`);
-      manifest.cards[job.id] = file;
+      if (attempt === MAX) throw err;
+      await sleep(2000 * 2 ** (attempt - 1));
       continue;
     }
-    process.stdout.write(`- ${job.id}: generating... `);
-    try {
-      const img = await withRetry(() => generateImage({ apiKey, model, quality, ...job }));
-      await writeFile(dest, img);
-      manifest.cards[job.id] = file;
-      console.log(`ok (${Math.round(img.length / 1024)} KB)`);
-    } catch (err) {
-      console.log('FAILED');
-      console.error(`    ${err.message}`);
-      if (err.code === 'moderation_blocked' || err.code === 'content_policy_violation') {
-        console.error('    The request was rejected by the content policy. The game will fall back');
-        console.error('    to built-in art for this card. See README ("카드 이미지") for options.');
-      }
-      failed.push(job.id);
-    }
-    // Save progress after every card so an interrupted run can resume.
-    manifest.model = model;
-    manifest.generatedAt = new Date().toISOString();
-    await writeFile(MANIFEST, JSON.stringify(manifest, null, 2) + '\n');
-  }
 
-  console.log(`\nDone. ${Object.keys(manifest.cards).length} image(s) in assets/cards/.`);
-  if (failed.length) {
-    console.log(`Failed: ${failed.join(', ')}`);
-    process.exitCode = 1;
+    if (res.ok) {
+      const b64 = JSON.parse(text)?.data?.[0]?.b64_json;
+      if (!b64) throw new Error(`응답에 이미지가 없습니다: ${text.slice(0, 300)}`);
+      fs.mkdirSync(OUT_DIR, { recursive: true });
+      fs.writeFileSync(outFile(id), Buffer.from(b64, 'base64'));
+      shrink(outFile(id));
+      return outFile(id);
+    }
+
+    const parsed = (() => { try { return JSON.parse(text)?.error || {}; } catch { return {}; } })();
+    const msg = parsed.message || text;
+    const param = parsed.param;
+
+    if (res.status === 400 || res.status === 404) {
+      /* 모델 이름이 안 맞으면 한 세대 이전 모델로 자동 대체 */
+      if (/model/i.test(msg) && /(not (found|exist)|does not exist|unsupported|unknown|invalid)/i.test(msg) && model !== 'gpt-image-1') {
+        console.warn(`! 모델 ${model} 사용 불가 → gpt-image-1 로 대체합니다. (${msg})`);
+        model = 'gpt-image-1';
+        attempt--;
+        continue;
+      }
+      /* 지원하지 않는 파라미터면 빼고 재시도 */
+      const bad = param && param !== 'prompt' && param !== 'model'
+        ? param
+        : (msg.match(/[Uu]n(?:known|recognized|supported)[^']*'([a-z_]+)'/) || [])[1];
+      if (bad && !dropped.has(bad) && bad !== 'prompt' && bad !== 'model') {
+        console.warn(`! 파라미터 ${bad} 미지원 → 제외하고 재시도합니다.`);
+        dropped.add(bad);
+        attempt--;
+        continue;
+      }
+      /* 안전 필터 거부는 재시도해도 소용없다 — 프롬프트를 손봐야 한다 */
+      if (/safety|moderation|policy|rejected|not allowed/i.test(msg)) throw new Error(`SAFETY: ${msg}`);
+    }
+
+    if (res.status === 429 || res.status >= 500) {
+      const retryAfter = Number(res.headers.get('retry-after'));
+      const wait = Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 3000 * 2 ** (attempt - 1);
+      if (attempt === MAX) throw new Error(`${res.status} ${msg}`);
+      console.warn(`  · ${id} ${res.status} — ${Math.round(wait / 1000)}초 후 재시도 (${attempt}/${MAX})`);
+      await sleep(wait);
+      continue;
+    }
+
+    throw new Error(`${res.status} ${msg}`);
   }
 }
 
-main().catch((err) => {
-  console.error(err.message);
-  process.exit(1);
-});
+/* ── manifest: 폴더에 실제로 있는 그림만 등록 ─────────────── */
+function writeManifest() {
+  const cards = {};
+  for (const id of Object.keys(items)) if (fs.existsSync(outFile(id))) cards[id] = `${id}.webp`;
+  fs.mkdirSync(OUT_DIR, { recursive: true });
+  fs.writeFileSync(MANIFEST, JSON.stringify({ cards }, null, 2) + '\n');
+}
+
+/* ── 실행 ─────────────────────────────────────────────────── */
+console.log(`모델 ${model} / quality=${OPTS.quality} / 동시 ${OPTS.concurrency}` + (WILL_SHRINK ? ` / cwebp ${OPTS.maxWidth}px` : ''));
+console.log(`생성 대상 ${targets.length}개${OPTS.force ? ' (--force)' : ' (기존 파일은 건너뜀)'}\n`);
+
+const failed = [];
+let done = 0;
+const queue = [...targets];
+
+async function worker() {
+  while (queue.length) {
+    const id = queue.shift();
+    try {
+      const file = await generate(id);
+      done++;
+      writeManifest();
+      const kb = Math.round(fs.statSync(file).size / 1024);
+      console.log(`✔ [${String(done).padStart(2)}/${targets.length}] ${id.padEnd(6)} → ${path.relative(ROOT, file)} (${kb} KB)`);
+    } catch (err) {
+      failed.push({ id, reason: String(err.message || err) });
+      console.error(`✘ ${id} — ${err.message || err}`);
+    }
+  }
+}
+
+await Promise.all(Array.from({ length: Math.min(OPTS.concurrency, targets.length) }, worker));
+writeManifest();
+
+console.log(`\n완료 ${done}개, 실패 ${failed.length}개.`);
+if (failed.length) {
+  for (const f of failed) console.log(`  ${f.id}: ${f.reason}`);
+  if (failed.some((f) => f.reason.startsWith('SAFETY'))) {
+    console.log('\n안전 필터에 걸린 항목은 data/card-prompts.json 의 해당 프롬프트를 고친 뒤 --only 로 다시 돌리세요.');
+  }
+  process.exitCode = 1;
+}
