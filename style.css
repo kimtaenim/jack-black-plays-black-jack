@@ -387,7 +387,7 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
   box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.35), 0 4px 10px rgba(0, 0, 0, 0.55);
   user-select: none;
 }
-.btn small { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; opacity: 0.9; }
+.btn small { display: block; margin-top: 2px; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; opacity: 0.9; line-height: 1; }
 .btn:active { transform: translateY(2px); filter: brightness(1.15); }
 .btn.yes { background: linear-gradient(180deg, #4fe07c, #138a3a); color: #04230f; }
 .btn.no { background: linear-gradient(180deg, #ff6b6b, #a3101a); color: #fff; }
@@ -398,7 +398,11 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
 .panel.result-panel::before {
   content: "";
   position: absolute;
-  inset: -150%;
+  left: 50%;
+  top: 50%;
+  width: 1400px;
+  height: 1400px;
+  margin: -700px 0 0 -700px;
   z-index: -1;
   background: repeating-conic-gradient(rgba(255, 220, 120, 0.16) 0 10deg, transparent 10deg 20deg);
   animation: spin 14s linear infinite;
@@ -585,4 +589,168 @@ dialog .btn { flex: 0 1 220px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; }
+}
+
+/* =====================================================================
+   Theatre dressing after the reference poster: swagged red velvet valance
+   with gold fringe, tied-back curtains with tassels, black back wall with
+   gold damask, 3D gold title, felt with gold rings, chip stacks.
+   ===================================================================== */
+body {
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255, 205, 110, 0.3), transparent 70%),
+    radial-gradient(circle at 50% 50%, rgba(242, 198, 90, 0.07) 0 2px, transparent 3px) 0 0 / 22px 22px,
+    radial-gradient(ellipse at 50% 55%, #1d0a08 0%, #070102 75%);
+}
+
+/* swag valance across the top */
+.valance {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 16px;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 52% 100% at 50% 0%, var(--velvet) 0%, var(--velvet-light) 35%, var(--velvet) 60%, var(--velvet-dark) 76%, transparent 78%) 0 0 / 110px 16px repeat-x,
+    linear-gradient(180deg, #2a0204, var(--velvet)) 0 0 / 100% 5px no-repeat;
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.6));
+}
+.valance::after { /* gold fringe following the swags */
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 18px;
+  background:
+    radial-gradient(ellipse 52% 100% at 50% 0%, transparent 0 75%, var(--gold-hi) 76%, var(--gold) 80%, var(--gold-deep) 86%, transparent 88%) 0 0 / 110px 16px repeat-x;
+}
+.app { padding-top: 16px; }
+
+/* curtains: deeper folds + gold rope tie-backs with tassels */
+.curtain {
+  width: max(var(--curtain-w), 12px, (100vw - 860px) / 2);
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.55), transparent 25%, transparent 75%, rgba(0, 0, 0, 0.55)),
+    repeating-linear-gradient(90deg,
+      #2a0204 0, var(--velvet-dark) 6%, var(--velvet) 14%, var(--velvet-light) 20%, #ff4a4a 22%, var(--velvet-light) 24%, var(--velvet) 32%, var(--velvet-dark) 42%, #2a0204 50%);
+  background-size: 100% 100%, 34px 100%;
+  box-shadow: inset 0 -60px 60px rgba(0, 0, 0, 0.55);
+}
+.curtain::before { /* rope */
+  content: "";
+  position: absolute;
+  top: 44%;
+  left: 0;
+  right: 0;
+  height: 7px;
+  background: repeating-linear-gradient(60deg, var(--gold-hi) 0 3px, var(--gold-deep) 3px 6px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+}
+.curtain::after { /* tassel */
+  content: "";
+  position: absolute;
+  top: calc(44% + 4px);
+  width: 12px;
+  height: 34px;
+  border-radius: 6px 6px 2px 2px;
+  background:
+    radial-gradient(circle at 50% 18%, var(--gold-hi) 0 3px, var(--gold) 4px 5px, transparent 6px),
+    repeating-linear-gradient(90deg, var(--gold) 0 2px, var(--gold-deep) 2px 3px) 0 11px / 100% 23px no-repeat;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.7));
+}
+.curtain.left::after { right: -3px; }
+.curtain.right::after { left: -3px; }
+
+/* title plaque: black with a double gold frame, 3D gold + ivory lettering */
+.topbar {
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(242, 198, 90, 0.18), transparent 60%),
+    linear-gradient(180deg, #160506, #050001);
+  border: 2px solid var(--gold);
+  box-shadow:
+    0 0 0 2px #050001,
+    0 0 0 3.5px var(--gold-deep),
+    0 0 18px rgba(242, 198, 90, 0.5),
+    inset 0 0 14px rgba(0, 0, 0, 0.9);
+}
+.title .gold {
+  filter:
+    drop-shadow(1px 0 0 #6b0a0f) drop-shadow(-1px 0 0 #6b0a0f)
+    drop-shadow(0 -1px 0 #6b0a0f) drop-shadow(0 2px 0 #3d0407);
+}
+.title .ivory {
+  color: #fff6e2;
+  text-shadow:
+    1px 1px 0 #b3121b, -1px -1px 0 #b3121b, 1px -1px 0 #b3121b, -1px 1px 0 #b3121b,
+    0 3px 0 #3d0407, 0 0 8px rgba(255, 230, 170, 0.5);
+}
+.title i { color: var(--gold); text-shadow: 0 0 6px rgba(242, 198, 90, 0.8); }
+.title .orn {
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: 0.7em;
+  color: var(--gold);
+  text-shadow: 0 0 6px rgba(242, 198, 90, 0.7);
+}
+
+/* banner: red velvet with gold trim */
+.dealer-banner {
+  background:
+    linear-gradient(90deg, rgba(255, 90, 90, 0.25), transparent 30%),
+    repeating-linear-gradient(90deg, var(--velvet-dark) 0, var(--velvet) 18px, var(--velvet-dark) 36px);
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 0 2px #1a0203, 0 0 0 3.5px var(--gold-deep), 0 0 14px rgba(212, 42, 49, 0.55);
+}
+
+/* felt: gold rings like a casino table, double gold rail */
+.table {
+  background:
+    radial-gradient(ellipse 95% 60% at 50% 108%, transparent 0 60%, rgba(242, 198, 90, 0.55) 60.4% 61%, transparent 61.4% 70%, rgba(242, 198, 90, 0.35) 70.3% 70.8%, transparent 71.2%) padding-box,
+    radial-gradient(ellipse 95% 50% at 50% -8%, transparent 0 62%, rgba(242, 198, 90, 0.35) 62.4% 63%, transparent 63.4%) padding-box,
+    radial-gradient(ellipse at 50% 50%, #1f7a4d 0%, var(--felt) 35%, var(--felt-dark) 90%) padding-box,
+    linear-gradient(180deg, var(--gold-hi), var(--gold-deep) 35%, #6e4d17 65%, var(--gold)) border-box;
+  box-shadow:
+    inset 0 0 0 5px #0c4a2b,
+    inset 0 0 0 7px rgba(242, 198, 90, 0.7),
+    inset 0 0 40px rgba(0, 0, 0, 0.55),
+    0 0 0 3px #1a0203,
+    0 0 26px rgba(242, 198, 90, 0.45),
+    0 14px 30px rgba(0, 0, 0, 0.7);
+}
+
+/* footer with chip stacks */
+.foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
+  opacity: 1;
+}
+.foot-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; opacity: 0.7; padding-bottom: 1px; }
+.chips { flex: none; display: flex; flex-direction: column-reverse; align-items: center; }
+.chips i {
+  display: block;
+  width: 26px;
+  height: 8px;
+  margin-top: -4px;
+  border-radius: 50%;
+  background:
+    repeating-linear-gradient(90deg, #b3121b 0 4px, #fbf4df 4px 6px);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.35), 0 1px 1px rgba(0, 0, 0, 0.6);
+}
+.chips i:nth-child(even) { background: repeating-linear-gradient(90deg, #151515 0 4px, #fbf4df 4px 6px); }
+.chips i:last-child { background: radial-gradient(ellipse, #fbf4df 0 30%, #b3121b 32%); }
+
+/* gold corner flourishes on the prompt / result panel */
+.panel {
+  background:
+    radial-gradient(circle at 10px 10px, var(--gold) 0 2px, transparent 3px),
+    radial-gradient(circle at calc(100% - 10px) 10px, var(--gold) 0 2px, transparent 3px),
+    radial-gradient(circle at 10px calc(100% - 10px), var(--gold) 0 2px, transparent 3px),
+    radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), var(--gold) 0 2px, transparent 3px),
+    radial-gradient(ellipse at 50% 0%, rgba(255, 90, 90, 0.4), transparent 70%),
+    repeating-linear-gradient(90deg, #4a070b 0, #6a0c11 16px, #4a070b 32px);
 }
