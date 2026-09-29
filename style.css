@@ -443,6 +443,7 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
   color: var(--card-ink);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), -3px 4px 10px rgba(0, 0, 0, 0.5);
   animation: deal 0.3s ease-out;
+  isolation: isolate; /* keep each card's corner indices / pips inside its own layer */
 }
 .card.red { color: var(--card-red); }
 @keyframes deal {
