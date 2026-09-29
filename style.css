@@ -243,6 +243,9 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
   flex: none;
   width: clamp(128px, 40vw, 230px); /* big enough to read the dealer's expression */
   aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  cursor: zoom-in;
   border-radius: 10px;
   background: #2a1510;
   box-shadow: 0 0 0 3px var(--gold), 0 0 0 5px rgba(0, 0, 0, 0.6), 0 0 22px rgba(242, 198, 90, 0.6);
@@ -638,3 +641,26 @@ dialog .btn { flex: 0 1 220px; }
   transform: translateY(-8px);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 0 18px rgba(242, 198, 90, 0.55), 0 12px 20px rgba(0, 0, 0, 0.6);
 }
+
+/* ---------- dealer close-up (tap the portrait) ---------- */
+.dealer-zoom {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: radial-gradient(ellipse at 50% 45%, rgba(60, 8, 8, 0.8), rgba(0, 0, 0, 0.92));
+  backdrop-filter: blur(3px);
+  cursor: zoom-out;
+  animation: zoom-fade 0.2s ease-out;
+}
+.dealer-zoom img {
+  width: min(92vw, 80dvh, 640px);
+  aspect-ratio: 1;
+  border-radius: 14px;
+  box-shadow: 0 0 0 3px var(--gold), 0 0 40px rgba(242, 198, 90, 0.45), 0 24px 50px rgba(0, 0, 0, 0.8);
+  animation: zoom-lift 0.25s ease-out;
+}
+@keyframes zoom-fade { from { opacity: 0; } }
+@keyframes zoom-lift { from { transform: scale(0.5); opacity: 0; } }
