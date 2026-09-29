@@ -10,10 +10,10 @@ The aces and court cards turn Jack into kings, queens and knaves. Built for phon
 
 ## ⚠️ Disclaimer (면책 조항)
 
-This is a non-commercial, fan-made parody project created strictly for educational and portfolio purposes.
+This is a non-commercial, fan-made parody project created strictly for educational purposes.
 I do not own any rights to the name or likeness of Jack Black. No copyright infringement is intended.
 
-(본 프로젝트는 교육 및 포트폴리오 목적으로 제작된 비상업적 팬메이드 패러디입니다.
+(본 프로젝트는 교육 목적으로 제작된 비상업적 팬메이드 패러디입니다.
 Jack Black의 이름 및 초상에 대한 어떠한 권리도 소유하지 않으며, 저작권 침해 의도가 없습니다.)
 
 전문 · Full text: [DISCLAIMER.md](DISCLAIMER.md)
