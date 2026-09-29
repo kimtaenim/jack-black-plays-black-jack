@@ -167,7 +167,7 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
   position: relative;
   flex: 0 1 auto;
   min-width: 0;
-  padding: 9px 14px 10px;
+  padding: 9px 10px 10px;
   background: radial-gradient(ellipse 65% 70% at 50% 50%, rgba(0, 0, 0, 0.75), transparent 75%);
 }
 .bulbs {
@@ -227,13 +227,13 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
 /* generated title art (stacked lettering) replaces the CSS title when present */
 .title-art {
   display: block;
-  width: clamp(200px, 60vw, 380px);
+  width: min(100%, 380px);
   aspect-ratio: 1456 / 700;
   height: auto;
   object-fit: contain; /* the uploaded logo is pre-trimmed; show it whole */
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6));
 }
-.topbar.has-art { padding: 0; background: none; }
+.topbar.has-art { padding: 0; background: none; flex: 1 1 0; }
 .topbar.has-art .title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .topbar.has-art .bulbs { display: none; }
 
@@ -241,7 +241,7 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
 .portrait {
   position: relative;
   flex: none;
-  width: clamp(78px, 24vw, 128px);
+  width: clamp(128px, 40vw, 230px); /* big enough to read the dealer's expression */
   aspect-ratio: 1;
   border-radius: 10px;
   background: #2a1510;
