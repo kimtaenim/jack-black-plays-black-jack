@@ -321,10 +321,13 @@ const MOODS = {
 };
 const MOOD_AFTER = { blackjack: 'SHOCK', win: 'SAD', lose: 'LAUGH', bust: 'SMUG', push: 'SHRUG' };
 
+// When an expression hasn't been drawn yet, borrow the closest one that has.
+const MOOD_STANDIN = { SMUG: ['LAUGH'], SHRUG: ['IDLE'] };
+
 function setMood(mood) {
-  const url = artUrl(`DEALER_${mood}`);
-  els.dealerImg.src = url ?? artUrl('DEALER_IDLE') ?? FALLBACK_DEALER;
-  els.mood.textContent = url ? '' : MOODS[mood];
+  const url = [mood, ...(MOOD_STANDIN[mood] ?? []), 'IDLE'].map((m) => artUrl(`DEALER_${m}`)).find(Boolean);
+  els.dealerImg.src = url ?? FALLBACK_DEALER;
+  els.mood.textContent = url ? '' : MOODS[mood]; // emoji badge only on the built-in SVG dealer
   els.dealerImg.parentElement.classList.remove('pop');
   void els.dealerImg.offsetWidth; // restart the animation
   els.dealerImg.parentElement.classList.add('pop');
