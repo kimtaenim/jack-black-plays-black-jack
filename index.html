@@ -28,10 +28,10 @@
           <span class="ivory">Black Jack</span>
         </h1>
       </div>
-      <div class="portrait" aria-label="Dealer">
+      <button class="portrait" id="portrait" type="button" aria-label="딜러 크게 보기">
         <img id="dealer-img" src="assets/dealer.svg" alt="Dealer" />
         <span class="mood" id="mood" aria-hidden="true"></span>
-      </div>
+      </button>
     </header>
 
     <p class="scoreline" aria-label="Score" aria-live="polite">
@@ -63,6 +63,9 @@
       <span class="chips" aria-hidden="true"><i></i><i></i><i></i></span>
     </footer>
   </div>
+
+  <!-- tap the dealer portrait to see it big; tap again to close -->
+  <div class="dealer-zoom" id="dealer-zoom" hidden><img id="dealer-zoom-img" alt="Dealer" /></div>
 
   <dialog id="disclaimer" aria-labelledby="disclaimer-title">
     <h2 id="disclaimer-title">⚠️ Disclaimer (면책 조항)</h2>

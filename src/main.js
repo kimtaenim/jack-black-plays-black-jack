@@ -380,6 +380,17 @@ els.playerHands.addEventListener('click', (e) => {
   card.classList.add('front');
 });
 
+// ---------- tap the dealer portrait to see him big; tap anywhere to close ----------
+const dealerZoom = $('dealer-zoom');
+$('portrait').addEventListener('click', () => {
+  $('dealer-zoom-img').src = els.dealerImg.src;
+  dealerZoom.hidden = false;
+});
+dealerZoom.addEventListener('click', () => (dealerZoom.hidden = true));
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') dealerZoom.hidden = true;
+});
+
 // ---------- disclaimer ----------
 $('show-disclaimer').addEventListener('click', () => els.disclaimer.showModal());
 els.disclaimer.addEventListener('close', () => store.set(DISCLAIMER_KEY, '1'));

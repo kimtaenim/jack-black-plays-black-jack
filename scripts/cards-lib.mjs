@@ -19,7 +19,7 @@ export const KINDS = {
   title: { label: '제목 로고', ratio: '가로 3:2', size: '1536x1024', maxWidth: 1000 },
   court: { label: '그림 카드 (A·J·Q·K)', ratio: '세로 2:3', size: '1024x1536', maxWidth: 640 },
   back: { label: '카드 뒷면', ratio: '세로 2:3', size: '1024x1536', maxWidth: 640 },
-  dealer: { label: '딜러 표정', ratio: '정사각형 1:1', size: '1024x1024', maxWidth: 384 },
+  dealer: { label: '딜러 표정', ratio: '정사각형 1:1', size: '1024x1024', maxWidth: 768 }, // big enough for the tap-to-enlarge view
   face: { label: '무늬 속 얼굴', ratio: '정사각형 1:1', size: '1024x1024', maxWidth: 320 },
 };
 
