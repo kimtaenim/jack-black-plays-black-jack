@@ -435,6 +435,12 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
+.outcome .ko {
+  font-family: var(--sans);
+  font-weight: 900;
+  font-size: 0.8em;
+  text-transform: none;
+}
 .outcome.good {
   background: var(--gold-grad);
   -webkit-background-clip: text;

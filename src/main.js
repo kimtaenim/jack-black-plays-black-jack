@@ -261,7 +261,7 @@ const OUTCOME = {
   win: { big: 'You Win!', tone: 'good' },
   push: { big: 'Push', tone: 'even' },
   lose: { big: 'Dealer Wins', tone: 'bad' },
-  bust: { big: 'Bust!', tone: 'bad' },
+  bust: { big: 'Bust!', ko: '초과!', tone: 'bad' },
 };
 
 function button(cls, label, sub, onClick) {
@@ -300,6 +300,12 @@ function renderPanel() {
     p.classList.add('result-panel');
     head.className = `outcome ${o.tone}`;
     head.textContent = o.big;
+    if (o.ko) {
+      const ko = document.createElement('span');
+      ko.className = 'ko';
+      ko.textContent = o.ko;
+      head.append(' ', ko);
+    }
     row.append(button('gold', '한 판 더!', 'PLAY AGAIN', deal));
   } else {
     head.className = 'ask';
