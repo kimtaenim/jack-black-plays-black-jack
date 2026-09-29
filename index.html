@@ -68,15 +68,16 @@
 
     </main>
 
+    <!-- dealer reaction: pops up big near the top, then shrinks into the portrait (CSS animation).
+         Lives inside .app, one layer below the centre panel, so the panel always stays on top. -->
+    <img class="reaction" id="reaction" alt="" aria-hidden="true" hidden />
+
     <footer class="foot">
       <span class="chips" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
       <button class="foot-text" id="show-disclaimer">ⓘ Disclaimer · 비상업적 팬메이드 패러디</button>
       <span class="chips" aria-hidden="true"><i></i><i></i><i></i></span>
     </footer>
   </div>
-
-  <!-- dealer reaction: pops up big near the top, then shrinks into the portrait (CSS animation) -->
-  <img class="reaction" id="reaction" alt="" aria-hidden="true" hidden />
 
   <!-- tap the dealer portrait to see it big; tap again to close -->
   <div class="dealer-zoom" id="dealer-zoom" hidden><img id="dealer-zoom-img" alt="Dealer" /></div>
