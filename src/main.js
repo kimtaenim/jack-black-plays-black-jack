@@ -126,15 +126,11 @@ function cardEl(card, faceDown = false) {
   if (faceDown) {
     div.classList.add('back');
     div.setAttribute('aria-label', 'face-down card');
+    const medal = facePip('S');
+    medal.classList.add('medallion');
+    div.appendChild(medal);
     const url = artUrl('BACK');
-    if (url) {
-      div.classList.add('has-art');
-      div.appendChild(imgEl(url, ''));
-    } else {
-      const medal = facePip('S');
-      medal.classList.add('medallion');
-      div.appendChild(medal);
-    }
+    if (url) overlayArt(div, url, '', 'has-art');
     return div;
   }
 
@@ -145,14 +141,6 @@ function cardEl(card, faceDown = false) {
 
   const frame = document.createElement('div');
   frame.className = 'frame';
-
-  const own = artUrl(`${rank}${suit}`);
-  if (own) {
-    // Uploaded art is a complete card (indices included), so it fills the whole card.
-    div.classList.add('full-art');
-    div.appendChild(imgEl(own, `${rank}${sym}`));
-    return div;
-  }
 
   if (rank === 'J' || rank === 'Q' || rank === 'K') {
     div.classList.add('face');
@@ -190,7 +178,23 @@ function cardEl(card, faceDown = false) {
     corner.innerHTML = `<span class="r">${rank}</span><span class="s">${sym}</span>`;
     div.appendChild(corner);
   }
+  // Uploaded art is a complete card (indices included). It sits on top of the built-in card and
+  // fades in once downloaded, so a slow connection shows a normal card instead of an empty frame.
+  const own = artUrl(`${rank}${suit}`);
+  if (own) overlayArt(div, own, `${rank}${sym}`, 'full-art');
   return div;
+}
+
+function overlayArt(div, url, alt, readyClass) {
+  const img = imgEl(url, alt);
+  img.classList.add('art-over');
+  const ready = () => {
+    img.classList.add('ready');
+    div.classList.add(readyClass);
+  };
+  if (img.complete && img.naturalWidth) ready();
+  else img.addEventListener('load', ready, { once: true });
+  div.appendChild(img);
 }
 
 function imgEl(src, alt) {
