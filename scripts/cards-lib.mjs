@@ -2,6 +2,7 @@
 // and the manifest the game reads (assets/cards/manifest.json).
 
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -47,12 +48,15 @@ export function findImage(id) {
   return hit ?? null;
 }
 
-/* Rewrite the manifest from what's actually in assets/cards/. */
+/* Rewrite the manifest from what's actually in assets/cards/.
+   Each entry carries a short content hash (?h=…) so browsers re-download an image only when it changes. */
 export function writeManifest(ids) {
   const cards = {};
   for (const id of ids) {
     const file = findImage(id);
-    if (file) cards[id] = file;
+    if (!file) continue;
+    const hash = crypto.createHash('sha1').update(fs.readFileSync(path.join(OUT_DIR, file))).digest('hex').slice(0, 8);
+    cards[id] = `${file}?h=${hash}`;
   }
   fs.mkdirSync(OUT_DIR, { recursive: true });
   fs.writeFileSync(MANIFEST, JSON.stringify({ cards }, null, 2) + '\n');
