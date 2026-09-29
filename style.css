@@ -227,11 +227,11 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
 /* generated title art (stacked lettering) replaces the CSS title when present */
 .title-art {
   display: block;
-  width: clamp(190px, 58vw, 360px);
-  height: clamp(84px, 25vw, 150px);
-  object-fit: cover;
-  -webkit-mask: radial-gradient(ellipse 58% 62% at 50% 50%, #000 70%, transparent 100%);
-  mask: radial-gradient(ellipse 58% 62% at 50% 50%, #000 70%, transparent 100%);
+  width: clamp(200px, 60vw, 380px);
+  aspect-ratio: 1456 / 700;
+  height: auto;
+  object-fit: contain; /* the uploaded logo is pre-trimmed; show it whole */
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.6));
 }
 .topbar.has-art { padding: 0; background: none; }
 .topbar.has-art .title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
@@ -547,6 +547,9 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
 }
 .card.back .pip.medallion { --pip: calc(var(--card-w) * 0.5); left: 50%; top: 50%; }
 .card.back .art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* generated back art already has its own ivory border and pattern */
+.card.back.has-art { border: 0; background: var(--ivory); }
+.card.back.has-art .art { border-radius: inherit; }
 
 /* ---------- footer (disclaimer link between chip stacks) & dialog ---------- */
 .foot {

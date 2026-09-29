@@ -11,7 +11,7 @@ const prompts = loadPrompts();
 const ids = Object.keys(prompts.items);
 
 const SUIT_KO = { S: '스페이드', H: '하트', D: '다이아몬드', C: '클로버' };
-const RANK_KO = { J: '잭', Q: '퀸', K: '킹' };
+const RANK_KO = { A: '에이스', J: '잭', Q: '퀸', K: '킹' };
 const MOOD_KO = {
   IDLE: '대기 — 느긋한 미소',
   DEAL: '카드 돌릴 때 — 윙크',
