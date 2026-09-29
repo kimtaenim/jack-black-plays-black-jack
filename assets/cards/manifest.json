@@ -1,10 +1,15 @@
 {
   "cards": {
     "AS": "AS.webp",
+    "AH": "AH.webp",
     "JS": "JS.webp",
     "QS": "QS.webp",
     "KS": "KS.webp",
+    "JH": "JH.webp",
+    "QH": "QH.webp",
     "KH": "KH.webp",
+    "QC": "QC.webp",
+    "KC": "KC.webp",
     "TITLE": "TITLE.webp",
     "DEALER_IDLE": "DEALER_IDLE.webp",
     "DEALER_DEAL": "DEALER_DEAL.webp",
