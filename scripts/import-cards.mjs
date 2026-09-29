@@ -60,7 +60,7 @@ for (const [id, list] of groups) {
   const tmp = path.join(OUT_DIR, `.${id}.tmp.webp`);
   const r = spawnSync(
     'cwebp',
-    ['-quiet', '-q', '82', '-resize', String(Math.min(maxWidth, width(src) || maxWidth)), '0', '-metadata', 'none', path.join(OUT_DIR, src), '-o', tmp],
+    ['-quiet', '-q', '76', '-resize', String(Math.min(maxWidth, width(src) || maxWidth)), '0', '-metadata', 'none', path.join(OUT_DIR, src), '-o', tmp],
     { stdio: 'inherit' },
   );
   if (r.status !== 0 || !fs.existsSync(tmp)) {
