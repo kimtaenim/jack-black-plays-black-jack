@@ -36,9 +36,25 @@ async function loadArt() {
     art = {};
   }
 }
-// Cache-busting tag for artwork; the deploy replaces 'dev' with the commit id so phones fetch new images.
-const BUILD = 'dev';
-const artUrl = (id) => (art[id] ? `assets/cards/${art[id]}?v=${BUILD}` : null);
+// Manifest entries already carry a content hash (?h=…), so an image is re-downloaded only when it changes.
+const artUrl = (id) => (art[id] ? `assets/cards/${art[id]}` : null);
+
+// Download and decode every image up front so cards and dealer faces appear instantly, not as empty frames.
+const preloaded = [];
+function preloadArt() {
+  // most-needed first: card back and dealer faces, then the cards
+  const ids = Object.keys(art).sort((a, b) => rank(a) - rank(b));
+  function rank(id) {
+    return id === 'BACK' || id === 'FACE' || id === 'TITLE' ? 0 : id.startsWith('DEALER_') ? 1 : 2;
+  }
+  for (const id of ids) {
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = artUrl(id);
+    img.decode?.().catch(() => {});
+    preloaded.push(img); // keep a reference so the decoded image stays in memory
+  }
+}
 
 function applyArt() {
   const title = artUrl('TITLE');
@@ -261,7 +277,7 @@ function render() {
 const OUTCOME = {
   blackjack: { big: 'Blackjack!!', tone: 'good' },
   win: { big: 'You Win!', tone: 'good' },
-  push: { big: 'Push', tone: 'even' },
+  push: { big: 'Push', ko: '무승부', tone: 'even' },
   lose: { big: 'Dealer Wins', tone: 'bad' },
   bust: { big: 'Bust!', ko: '초과!', tone: 'bad' },
 };
@@ -426,6 +442,7 @@ els.disclaimer.addEventListener('close', () => store.set(DISCLAIMER_KEY, '1'));
 if (store.get(DISCLAIMER_KEY) !== '1') els.disclaimer.showModal();
 
 await loadArt();
+preloadArt();
 applyArt();
 setMood('IDLE');
 render();
