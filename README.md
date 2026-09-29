@@ -52,57 +52,75 @@ game.results;     // [{ outcome: 'win' | 'blackjack' | 'push' | 'lose' | 'bust',
 
 테스트: `npm test` (Node 내장 테스트 러너, 의존성 없음)
 
-## 🎨 그림 만들기 (OpenAI API)
+## 🎨 그림 만들기 · How the artwork was made
 
-게임에는 직접 그린 기본 캐릭터 그림(`assets/face.svg`, `assets/dealer.svg`)이 들어 있어서 **API 키 없이도 바로 플레이**할 수 있습니다.
-OpenAI 이미지 API로 그림을 만들면 자동으로 그 그림으로 바뀝니다.
-프롬프트는 전부 [`data/card-prompts.json`](data/card-prompts.json)에 있으니 거기서 고치면 됩니다.
+이 게임의 그림 26장(제목, 카드 뒷면, 딜러 표정 7장, A·J·Q·K 16장, 무늬 속 얼굴)은 **전부 ChatGPT 채팅창에서 직접 만들었습니다** (아래 방법 0).
+저장소에는 OpenAI 이미지 API로 자동 생성하는 스크립트(방법 1·2)도 있지만, **실제로는 쓰지 않았습니다.**
 
-| ID | 용도 | 크기 |
+All 26 images in this game (title, card back, 7 dealer expressions, 16 aces and court cards, and the pip face) were **made by hand in the ChatGPT chat app** (method 0 below).
+The repository also contains scripts that generate them automatically through the OpenAI Images API (methods 1 and 2), but **they were not used.**
+
+> **왜 API를 안 썼나 · Why not the API?**
+> ChatGPT 채팅과 OpenAI 이미지 API는 같은 모델이라도 **실존 인물에 대한 안전 필터가 다르게 적용됩니다.**
+> 채팅에서는 "잭 블랙 캐리커처"가 잘 그려졌지만, API는 살아 있는 실존 인물의 이름이 들어간 요청을 거절하는 경우가 많습니다.
+> 그래서 채팅에서 만든 그림을 올리면 게임에 자동으로 들어가도록 파이프라인을 만들었습니다.
+>
+> The ChatGPT chat app and the OpenAI Images API apply **different safety filters for real people**, even when the underlying model is the same.
+> A "Jack Black caricature" prompt worked in the chat app, but the API tends to reject requests that name a living person.
+> So the pipeline here takes images made in the chat and drops them into the game automatically.
+
+게임에는 직접 그린 기본 그림(`assets/face.svg`, `assets/dealer.svg`)도 있어서, 그림이 하나도 없어도 플레이할 수 있습니다.
+The game also ships with built-in fallback art (`assets/face.svg`, `assets/dealer.svg`), so it is playable even with no images at all.
+
+| ID | 용도 · Use | 비율 · Ratio |
 | --- | --- | --- |
-| `JS` … `KC` | J·Q·K 12장. 모서리 표시까지 들어간 **카드 한 장 전체** | 1024x1536 |
-| `TITLE` | 맨 위 제목 로고. 세 줄로 쌓은 글자, 가운데만 잘라서 씀 | 1536x1024 |
-| `DEALER_IDLE` … `DEALER_SHRUG` | 딜러 초상. 잭 블랙 얼굴 캐리커처, 검은 연미복, 표정 7가지 (아래 표) | 1024x1024 |
-| `FACE` | 숫자 카드 무늬 한두 개에 들어가는 얼굴 | 1024x1024 |
-| `BACK` | 카드 뒷면 | 1024x1536 |
+| `TITLE` | 맨 위 제목 로고 · title logo | 가로 3:2 · landscape 3:2 |
+| `BACK` | 카드 뒷면 · card back | 세로 2:3 · portrait 2:3 |
+| `AS` … `KC` | 에이스·그림 카드 16장, 모서리 표시까지 포함한 카드 한 장 전체 · 16 aces and court cards, full card with corner indices | 세로 2:3 · portrait 2:3 |
+| `DEALER_IDLE` … `DEALER_SHRUG` | 딜러 표정 7가지 (검은 연미복) · 7 dealer expressions (black tailcoat) | 정사각형 1:1 · square 1:1 |
+| `FACE` | 숫자 카드 무늬 한두 개 속 얼굴 · face inside one or two pips of each number card | 정사각형 1:1 · square 1:1 |
 
-딜러 표정: `IDLE` 대기 · `DEAL` 카드 돌릴 때(윙크) · `SHOCK` 내가 블랙잭 · `SAD` 내가 승리 ·
-`LAUGH` 딜러 승리 · `SMUG` 내가 버스트 · `SHRUG` 무승부. 없는 표정은 `DEALER_IDLE`, 그것도 없으면 기본 그림 + 이모지로 대신합니다.
+딜러 표정 · Dealer expressions: `IDLE` 대기 waiting · `DEAL` 카드 돌릴 때 dealing (wink) · `SHOCK` 내가 블랙잭 player blackjack ·
+`SAD` 내가 승리 player wins · `LAUGH` 딜러 승리 dealer wins · `SMUG` 내가 버스트 player busts · `SHRUG` 무승부 push.
 
-**방법 0 — ChatGPT 에서 직접 만들어 올리기**
+### 방법 0 — ChatGPT 에서 직접 만들어 올리기 (사용한 방법) · Method 0 — make it in ChatGPT and upload (used)
 
-API 가 실존 인물 그림을 거절할 때 쓰는 방법입니다. **[docs/IMAGE-GUIDE.md](docs/IMAGE-GUIDE.md)** 에
-유형별 비율·크기, 파일 이름, 복사해서 쓰는 프롬프트가 전부 정리돼 있습니다.
+**[docs/IMAGE-GUIDE.md](docs/IMAGE-GUIDE.md)** 에 유형별 비율·크기, 파일 이름, 복사해서 쓰는 프롬프트가 전부 정리돼 있습니다.
+**[docs/IMAGE-GUIDE.md](docs/IMAGE-GUIDE.md)** lists every image with its ratio, size, file name and a prompt ready to copy.
 
-1. 가이드의 프롬프트를 ChatGPT 에 붙여넣고, 표의 비율(가로 3:2 / 세로 2:3 / 정사각형)로 만든다
-2. 파일 이름을 ID 로 바꾼다 (`QS.png`, `DEALER_LAUGH.png`, `TITLE.png` …)
-3. GitHub 에서 `assets/cards` → **Add file → Upload files**
-4. `card-import` 워크플로가 자동으로 크기를 줄인 webp 로 바꾸고 목록을 갱신 → 사이트에 반영
+1. 가이드의 프롬프트를 ChatGPT 에 붙여넣고, 표의 비율로 만든다 · Paste the prompt into ChatGPT and generate at the ratio in the table.
+2. 파일 이름을 ID 로 바꾼다 (`QS.png`, `DEALER_LAUGH.png`, `TITLE.png` …) · Rename the file to its ID.
+3. GitHub 에서 `assets/cards` → **Add file → Upload files** · Upload it to `assets/cards` on GitHub.
+4. `card-import` 워크플로가 크기를 줄인 webp 로 바꾸고 목록을 갱신 → 사이트에 반영 · The `card-import` workflow shrinks it to webp, updates the manifest and the site redeploys.
 
 로컬에서는 `assets/cards/` 에 파일을 넣고 `npm run import:cards`. 프롬프트를 고친 뒤에는 `npm run guide` 로 가이드를 다시 만듭니다.
+Locally: put the files in `assets/cards/` and run `npm run import:cards`. After editing prompts, run `npm run guide` to rebuild the guide.
 
-**방법 1 — GitHub Actions (추천)**
+### 방법 1·2 — OpenAI 이미지 API (사용 안 함) · Methods 1 & 2 — OpenAI Images API (not used)
+
+실존 인물 필터 때문에 이 프로젝트에서는 쓰지 않았지만, 인물이 아닌 그림이나 다른 프로젝트에서 참고할 수 있도록 남겨 둡니다.
+Not used here because of the real-person filter, but kept for reference (e.g. artwork without real people, or other projects).
+
+**방법 1 — GitHub Actions · Method 1 — GitHub Actions**
 
 1. **Settings → Secrets and variables → Actions → New repository secret**: `OPENAI_API_KEY`
-2. **Actions → card-images → Run workflow** (특정 카드만: `only`에 `QS,KH` 처럼 입력)
-3. 생성된 그림이 자동으로 커밋되고, `main`이면 Pages 배포까지 이어서 돕니다.
+2. **Actions → card-images → Run workflow** (`only`: `QS,KH` …)
+3. 생성된 그림이 자동으로 커밋됩니다 · Generated images are committed automatically.
 
-**방법 2 — 로컬**
+**방법 2 — 로컬 · Method 2 — local**
 
 ```bash
-cp .env.example .env                                  # OPENAI_API_KEY 입력 (.env는 git에 올라가지 않음)
-node scripts/generate-cards.mjs --dry-run             # 프롬프트만 확인 (API 호출 없음)
-node scripts/generate-cards.mjs --only QS,KH          # 먼저 두 장만
-node scripts/generate-cards.mjs                       # 아직 없는 것 전부 (최대 22장)
-node scripts/generate-cards.mjs --list-missing        # 아직 없는 ID 목록
+cp .env.example .env                                  # OPENAI_API_KEY (.env is git-ignored)
+node scripts/generate-cards.mjs --dry-run             # print prompts only, no API calls
+node scripts/generate-cards.mjs --only QS,KH          # try two first
+node scripts/generate-cards.mjs                       # everything still missing
+node scripts/generate-cards.mjs --list-missing        # list missing IDs
 ```
 
-옵션: `--model` (기본 `gpt-image-2`, 없으면 `gpt-image-1`로 자동 대체), `--quality low|medium|high` (기본 medium),
-`--force`, `--concurrency`, `--max-width` (cwebp가 있으면 저장 전에 축소, 기본 640px).
+옵션 · Options: `--model` (default `gpt-image-2`, falls back to `gpt-image-1`), `--quality low|medium|high`, `--force`, `--concurrency`, `--max-width`.
 
-- 🔑 API 키는 절대 커밋하거나 프론트엔드 코드에 넣지 마세요. 플레이어에게는 키가 필요 없습니다.
-- 💰 이미지 생성은 유료입니다. `--only`로 한두 장 먼저 확인하세요.
-- 🚫 안전 필터에 걸린 항목은 `SAFETY`로 표시됩니다. 해당 프롬프트를 고친 뒤 `--only`로 다시 돌리세요.
+- 🔑 API 키는 절대 커밋하지 마세요 · Never commit an API key. Players don't need one.
+- 🚫 안전 필터에 걸리면 `SAFETY` 로 표시됩니다 · Requests blocked by the safety filter are reported as `SAFETY`.
 
 ## 🚀 GitHub Pages로 공개하기
 
