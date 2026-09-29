@@ -1,1 +1,9 @@
-{ "cards": {} }
+{
+  "cards": {
+    "DEALER_IDLE": "DEALER_IDLE.webp",
+    "DEALER_DEAL": "DEALER_DEAL.webp",
+    "DEALER_SHOCK": "DEALER_SHOCK.webp",
+    "DEALER_SAD": "DEALER_SAD.webp",
+    "DEALER_LAUGH": "DEALER_LAUGH.webp"
+  }
+}
