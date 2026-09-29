@@ -36,7 +36,9 @@ async function loadArt() {
     art = {};
   }
 }
-const artUrl = (id) => (art[id] ? `assets/cards/${art[id]}` : null);
+// Cache-busting tag for artwork; the deploy replaces 'dev' with the commit id so phones fetch new images.
+const BUILD = 'dev';
+const artUrl = (id) => (art[id] ? `assets/cards/${art[id]}?v=${BUILD}` : null);
 
 function applyArt() {
   const title = artUrl('TITLE');

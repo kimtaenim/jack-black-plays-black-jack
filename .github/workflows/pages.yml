@@ -42,6 +42,11 @@ jobs:
         run: |
           mkdir _site
           cp -r index.html style.css manifest.webmanifest src assets .nojekyll _site/
+          # Cache-busting: tag CSS / JS / artwork URLs with the commit id so phones pick up new versions
+          v="${GITHUB_SHA::7}"
+          sed -i "s#href=\"style.css\"#href=\"style.css?v=$v\"#; s#src=\"src/main.js\"#src=\"src/main.js?v=$v\"#" _site/index.html
+          sed -i "s#from './engine.js'#from './engine.js?v=$v'#; s#const BUILD = 'dev';#const BUILD = '$v';#" _site/src/main.js
+          grep -q "style.css?v=$v" _site/index.html && grep -q "BUILD = '$v'" _site/src/main.js
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
