@@ -237,17 +237,17 @@ button:focus-visible { outline: 3px solid var(--gold-hi); outline-offset: 2px; }
 .topbar.has-art .title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .topbar.has-art .bulbs { display: none; }
 
-/* big dealer face */
+/* big dealer portrait: square, so the generated 1:1 picture is shown whole */
 .portrait {
   position: relative;
   flex: none;
   width: clamp(78px, 24vw, 128px);
   aspect-ratio: 1;
-  border-radius: 50%;
+  border-radius: 10px;
   background: #2a1510;
   box-shadow: 0 0 0 3px var(--gold), 0 0 0 5px rgba(0, 0, 0, 0.6), 0 0 22px rgba(242, 198, 90, 0.6);
 }
-.portrait img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; object-position: 50% 10%; display: block; }
+.portrait img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; display: block; } /* square art shown whole */
 .portrait.pop img { animation: bob 0.35s ease-out; }
 @keyframes bob { 40% { transform: scale(1.08) rotate(-4deg); } }
 /* expression badge (only while the generated expression images don't exist yet) */
