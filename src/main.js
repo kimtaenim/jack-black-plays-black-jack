@@ -363,12 +363,14 @@ window.addEventListener('resize', () => {
   resizeTimer = setTimeout(fitAll, 100);
 });
 
-$('reset-score').addEventListener('click', () => {
-  if (!confirm('점수를 초기화할까요?')) return;
+function resetScore() {
+  if (!confirm('블랙잭 승 · 승 · 패 · 승률을 모두 0으로 초기화할까요?')) return;
   Object.assign(score, { bj: 0, win: 0, lose: 0 });
   saveScore();
   render();
-});
+}
+$('score-reset').addEventListener('click', resetScore);
+$('reset-score').addEventListener('click', resetScore);
 
 // ---------- tap one of your cards to bring it to the front (dealer cards aren't touchable) ----------
 els.playerHands.addEventListener('click', (e) => {
