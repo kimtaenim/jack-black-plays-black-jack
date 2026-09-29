@@ -332,7 +332,28 @@ function setMood(mood) {
   els.dealerImg.parentElement.classList.remove('pop');
   void els.dealerImg.offsetWidth; // restart the animation
   els.dealerImg.parentElement.classList.add('pop');
+  if (url && mood !== 'IDLE') react(url);
 }
+
+// Show the reaction big near the top, then let CSS shrink it into the portrait's spot.
+const reaction = $('reaction');
+function react(url) {
+  const r = $('portrait').getBoundingClientRect();
+  // As big as the top area down to the dealer's cards; the player's cards stay visible.
+  const top = document.querySelector('.dealer-area').getBoundingClientRect().bottom;
+  const big = Math.min(innerWidth * 0.8, top - 8, 440);
+  reaction.style.setProperty('--big', `${big}px`);
+  reaction.style.setProperty('--start-y', `${Math.max(4, (top - big) / 2)}px`);
+  reaction.style.setProperty('--end-x', `${r.left + r.width / 2}px`);
+  reaction.style.setProperty('--end-y', `${r.top + r.height / 2}px`);
+  reaction.style.setProperty('--end-s', r.width / big);
+  reaction.src = url;
+  reaction.hidden = false;
+  reaction.classList.remove('play');
+  void reaction.offsetWidth; // restart the animation
+  reaction.classList.add('play');
+}
+reaction.addEventListener('animationend', () => (reaction.hidden = true));
 
 const headline = (results) => results[0].outcome;
 
