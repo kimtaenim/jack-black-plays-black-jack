@@ -128,15 +128,16 @@ function cardEl(card, faceDown = false) {
   const frame = document.createElement('div');
   frame.className = 'frame';
 
+  const own = artUrl(`${rank}${suit}`);
+  if (own) {
+    // Uploaded art is a complete card (indices included), so it fills the whole card.
+    div.classList.add('full-art');
+    div.appendChild(imgEl(own, `${rank}${sym}`));
+    return div;
+  }
+
   if (rank === 'J' || rank === 'Q' || rank === 'K') {
     div.classList.add('face');
-    const url = artUrl(`${rank}${suit}`);
-    if (url) {
-      // Generated art is a complete card (indices included), so it fills the whole card.
-      div.classList.add('full-art');
-      div.appendChild(imgEl(url, `${rank}${sym}`));
-      return div;
-    }
     // Fallback: double-ended court card built from two mirrored halves.
     for (const pos of ['top', 'bottom']) {
       const half = document.createElement('div');

@@ -1,9 +1,18 @@
 {
   "cards": {
+    "AS": "AS.webp",
+    "JS": "JS.webp",
+    "QS": "QS.webp",
+    "KS": "KS.webp",
+    "KH": "KH.webp",
+    "TITLE": "TITLE.webp",
     "DEALER_IDLE": "DEALER_IDLE.webp",
     "DEALER_DEAL": "DEALER_DEAL.webp",
     "DEALER_SHOCK": "DEALER_SHOCK.webp",
     "DEALER_SAD": "DEALER_SAD.webp",
-    "DEALER_LAUGH": "DEALER_LAUGH.webp"
+    "DEALER_LAUGH": "DEALER_LAUGH.webp",
+    "DEALER_SMUG": "DEALER_SMUG.webp",
+    "DEALER_SHRUG": "DEALER_SHRUG.webp",
+    "BACK": "BACK.webp"
   }
 }
