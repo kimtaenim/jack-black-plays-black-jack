@@ -664,3 +664,41 @@ dialog .btn { flex: 0 1 220px; }
 }
 @keyframes zoom-fade { from { opacity: 0; } }
 @keyframes zoom-lift { from { transform: scale(0.5); opacity: 0; } }
+
+/* ---------- dealer reaction: big near the top → shrinks into the portrait ---------- */
+.reaction {
+  position: fixed;
+  z-index: 25;
+  left: 0;
+  top: 0;
+  width: var(--big);
+  aspect-ratio: 1;
+  border-radius: 16px;
+  pointer-events: none; /* never blocks the YES / NO buttons */
+  box-shadow: 0 0 0 3px var(--gold), 0 0 40px rgba(242, 198, 90, 0.55), 0 24px 50px rgba(0, 0, 0, 0.8);
+  transform-origin: 50% 50%;
+}
+.reaction.play { animation: reaction 1.9s cubic-bezier(0.3, 0.7, 0.3, 1) forwards; }
+@keyframes reaction {
+  0% {
+    opacity: 0;
+    translate: calc(50vw - var(--big) / 2) var(--start-y);
+    scale: 0.4;
+  }
+  14% {
+    opacity: 1;
+    translate: calc(50vw - var(--big) / 2) var(--start-y);
+    scale: 1.05;
+  }
+  22%, 58% {
+    opacity: 1;
+    translate: calc(50vw - var(--big) / 2) var(--start-y);
+    scale: 1;
+  }
+  100% {
+    opacity: 1;
+    translate: calc(var(--end-x) - var(--big) / 2) calc(var(--end-y) - var(--big) / 2);
+    scale: var(--end-s);
+  }
+}
+@media (prefers-reduced-motion: reduce) { .reaction { display: none; } }
