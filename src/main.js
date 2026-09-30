@@ -344,14 +344,14 @@ const MOODS = {
   DEAL: '😉', // dealing / player deciding
   SHOCK: '😱', // player got a blackjack
   SAD: '😭', // player won
-  LAUGH: '🤣', // dealer won
-  SMUG: '😏', // player busted
+  LAUGH: '🤣', // player busted
+  SMUG: '😏', // dealer won
   SHRUG: '🤷', // push
 };
-const MOOD_AFTER = { blackjack: 'SHOCK', win: 'SAD', lose: 'LAUGH', bust: 'SMUG', push: 'SHRUG' };
+const MOOD_AFTER = { blackjack: 'SHOCK', win: 'SAD', lose: 'SMUG', bust: 'LAUGH', push: 'SHRUG' };
 
 // When an expression hasn't been drawn yet, borrow the closest one that has.
-const MOOD_STANDIN = { SMUG: ['LAUGH'], SHRUG: ['IDLE'] };
+const MOOD_STANDIN = { SMUG: ['LAUGH'], LAUGH: ['SMUG'], SHRUG: ['IDLE'] };
 
 function setMood(mood) {
   const url = [mood, ...(MOOD_STANDIN[mood] ?? []), 'IDLE'].map((m) => artUrl(`DEALER_${m}`)).find(Boolean);
