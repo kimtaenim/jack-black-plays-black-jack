@@ -17,8 +17,8 @@ const MOOD_KO = {
   DEAL: '카드 돌릴 때 — 윙크',
   SHOCK: '내가 블랙잭 — 깜짝 놀람',
   SAD: '내가 이김 — 울상',
-  LAUGH: '딜러가 이김 — 폭소',
-  SMUG: '내가 버스트 — 비웃음',
+  LAUGH: '내가 버스트 — 폭소',
+  SMUG: '딜러가 이김 — 비웃음',
   SHRUG: '무승부 — 어깨 으쓱',
 };
 const USE = {

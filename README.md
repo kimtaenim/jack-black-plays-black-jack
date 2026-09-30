@@ -87,7 +87,7 @@ The game also ships with built-in fallback art (`assets/face.svg`, `assets/deale
 | `FACE` | 숫자 카드 무늬 한두 개 속 얼굴 · face inside one or two pips of each number card | 정사각형 1:1 · square 1:1 |
 
 딜러 표정 · Dealer expressions: `IDLE` 대기 waiting · `DEAL` 카드 돌릴 때 dealing (wink) · `SHOCK` 내가 블랙잭 player blackjack ·
-`SAD` 내가 승리 player wins · `LAUGH` 딜러 승리 dealer wins · `SMUG` 내가 버스트 player busts · `SHRUG` 무승부 push.
+`SAD` 내가 승리 player wins · `LAUGH` 내가 버스트 player busts · `SMUG` 딜러 승리 dealer wins · `SHRUG` 무승부 push.
 
 ### 방법 0 — ChatGPT 에서 직접 만들어 올리기 (사용한 방법) · Method 0 — make it in ChatGPT and upload (used)
 
