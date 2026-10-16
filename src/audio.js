@@ -6,8 +6,9 @@
 //
 // Results have no sound effects of their own: the pianist plays them into the rag, in its key
 // and tempo (react()), then carries on from the next bar.
-//   win        tonic chord, BANG BANG            blackjack  fanfare up to a big tonic chord
-//   lose/bust  dissonant cluster, BANG BANG      push       one sour, unresolved chord
+//   win        tonic chord, BANG BANG (+ trumpet)   blackjack  trumpet fanfare up to a big tonic chord
+//   lose       dissonant cluster, BANG BANG         bust       a very short sad trumpet tune, minor
+//   push       one sour, unresolved chord
 //   dealer blackjack  a crashing cluster, the piano stops for a moment, then a new rag
 //
 // Small table noises stay as effects:  card  (lands on the felt)  flip  (hole card)  tick  on
@@ -241,6 +242,43 @@ export class Sound {
     }
   }
 
+  // a brassy trumpet note: buzzy saws through a filter that opens on the attack ("blat"),
+  // with a little vibrato on longer notes
+  trumpet(midi, when, dur, vol, out) {
+    const ctx = this.ctx;
+    const f = 440 * Math.pow(2, (midi - 69) / 12);
+    const end = when + Math.max(0.08, dur);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.Q.value = 2;
+    lp.frequency.setValueAtTime(f * 1.5, when);
+    lp.frequency.linearRampToValueAtTime(f * 7, when + 0.04);
+    lp.frequency.exponentialRampToValueAtTime(f * 3.5, when + 0.18);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.exponentialRampToValueAtTime(vol, when + 0.03);
+    g.gain.setValueAtTime(vol * 0.8, end - 0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001, end + 0.06);
+    lp.connect(g).connect(out);
+    const vib = ctx.createOscillator();
+    const vg = ctx.createGain();
+    vib.frequency.value = 5.5;
+    vg.gain.setValueAtTime(0, when);
+    vg.gain.linearRampToValueAtTime(dur > 0.35 ? f * 0.012 : 0, when + 0.3);
+    vib.connect(vg);
+    for (const cents of [-6, 6]) {
+      const o = ctx.createOscillator();
+      o.type = 'sawtooth';
+      o.frequency.value = f * Math.pow(2, cents / 1200);
+      vg.connect(o.frequency);
+      o.connect(lp);
+      o.start(when);
+      o.stop(end + 0.1);
+    }
+    vib.start(when);
+    vib.stop(end + 0.1);
+  }
+
   // ---------- results, played into the music ----------
 
   // kind: win | blackjack | lose | bust | push | dealerBJ
@@ -291,7 +329,10 @@ export class Sound {
     while (this.next < this.ctx.currentTime + 0.4) {
       if (!this.tune || this.tune.step >= this.tune.steps.length) this.tune = makeTune();
       const { steps, step, sixteenth } = this.tune;
-      for (const [midi, len, vol, hit] of steps[step]) this.piano(midi, this.next, len * sixteenth * 1.5, vol, hit ? this.hits : this.music);
+      for (const [midi, len, vol, hit] of steps[step]) {
+        if (hit === 'tp') this.trumpet(midi, this.next, len * sixteenth, vol, this.hits);
+        else this.piano(midi, this.next, len * sixteenth * 1.5, vol, hit ? this.hits : this.music);
+      }
       // ragtime is played straight (no swing): every sixteenth the same length
       this.next += sixteenth;
       this.tune.step++;
@@ -418,8 +459,10 @@ function makeTune() {
 
 // ---------- result licks ----------
 // Each lick is a list of sixteenth-note steps like the rag's, in the rag's key (k = tonic pitch class).
-// Notes are [midi, length in sixteenths, volume, hit] — hit routes them to the louder "hits" bus.
+// Notes are [midi, length in sixteenths, volume, hit] — hit routes them to the louder "hits" bus,
+// 'tp' plays them on the trumpet.
 const H = (notes, len, vol) => notes.map((m) => [m, len, vol, true]);
+const T = (m, len, vol = 0.2) => [m, len, vol, 'tp'];
 const rests = (n) => Array.from({ length: n }, () => []);
 // a big two-handed chord: octave bass + the chord spread over the right hand
 const slam = (k, low, rh, len, vol) => H([36 + k + low, 48 + k + low, ...rh.map((x) => 60 + k + x)], len, vol);
@@ -429,21 +472,24 @@ const SOUR = [0, 1, 6, 11, 13, 18];
 const SOURER = [-1, 0, 5, 6, 10, 11];
 
 const LICKS = {
-  // tonic chord: BANG . BANG ———
-  win: (k) => [slam(k, 0, TONIC, 1.5, 0.3), [], slam(k, 0, TONIC, 6, 0.32), ...rests(5)],
-  // fanfare: G G G C | E . G . | big C ———
+  // tonic chord: BANG . BANG ——— with the trumpet on top (sol → do)
+  win: (k) => [[...slam(k, 0, TONIC, 1.5, 0.3), T(67 + k, 1.4)], [], [...slam(k, 0, TONIC, 6, 0.32), T(72 + k, 5)], ...rests(5)],
+  // trumpet fanfare over the piano: G G G C | E . G . | C' ——— big C
   blackjack: (k) => [
-    H([67 + k, 64 + k], 0.8, 0.3), [], H([67 + k, 64 + k], 0.8, 0.3), H([67 + k, 64 + k], 0.8, 0.3),
-    slam(k, 0, [0, 4, 12], 3, 0.3), [], [], [],
-    H([76 + k, 72 + k], 1.6, 0.3), [], H([79 + k, 76 + k], 1.6, 0.32), [],
-    H([84 + k, 79 + k, 76 + k], 1.6, 0.32), [], [], [],
-    slam(k, 0, [...TONIC, 24], 10, 0.32), [], H([84 + k], 1, 0.22), H([88 + k], 1, 0.22),
+    [...H([67 + k, 64 + k], 0.8, 0.3), T(67 + k, 0.8)], [], [...H([67 + k, 64 + k], 0.8, 0.3), T(67 + k, 0.8)], [...H([67 + k, 64 + k], 0.8, 0.3), T(67 + k, 0.8)],
+    [...slam(k, 0, [0, 4, 12], 3, 0.3), T(72 + k, 3)], [], [], [],
+    [...H([76 + k, 72 + k], 1.6, 0.3), T(76 + k, 1.6)], [], [...H([79 + k, 76 + k], 1.6, 0.32), T(79 + k, 1.6)], [],
+    [...H([84 + k, 79 + k, 76 + k], 1.6, 0.32), T(84 + k, 1.6)], [], [], [],
+    [...slam(k, 0, [...TONIC, 24], 10, 0.32), T(84 + k, 9, 0.22), T(76 + k, 9, 0.14)], [], H([84 + k], 1, 0.22), H([88 + k], 1, 0.22),
     H([91 + k], 1, 0.22), H([96 + k], 6, 0.24), ...rests(10),
   ],
   // dissonant cluster: BANG . BANG ———
   lose: (k) => [slam(k, 0, SOUR, 1.5, 0.28), [], slam(k, -1, SOURER, 6, 0.3), ...rests(5)],
-  // the same, sliding down a semitone each time
-  bust: (k) => [slam(k, 0, SOUR, 1.2, 0.28), [], slam(k, -1, SOURER, 1.2, 0.28), [], slam(k, -2, SOUR.map((x) => x - 2), 6, 0.3), ...rests(3)],
+  // a very short sad trumpet tune: sol, fa#, fa … mi♭ over a soft minor chord
+  bust: (k) => [
+    [T(67 + k, 1.6, 0.18), ...H([36 + k, 48 + k], 6, 0.16)], [], [T(66 + k, 1.6, 0.18)], [], [T(65 + k, 1.6, 0.18)], [],
+    [T(63 + k, 6, 0.2), ...H([36 + k, 55 + k, 60 + k, 63 + k], 6, 0.14)], [],
+  ],
   // one sour chord left hanging
   push: (k) => [slam(k, 0, [0, 6, 11, 13], 6, 0.22), ...rests(7)],
   // dealer blackjack: a crash across the keyboard, the pianist stops, then starts a new rag
