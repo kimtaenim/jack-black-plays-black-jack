@@ -41,13 +41,13 @@ On start the game asks whether to turn sound on; the **sound O / X** button on t
 
 - 효과음과 음악 모두 Web Audio로 **즉석 합성**합니다. 음원 파일이 없어 저작권 걱정이 없습니다.
   Effects and music are all **synthesized live** with Web Audio — no audio files, so no licensing concerns.
-- 결과 반응은 따로 효과음을 내지 않고 **피아니스트가 곡 안에서 바로 쳐 줍니다** (지금 곡의 조성·빠르기 그대로, 끝나면 다음 마디부터 곡이 이어짐) · Results have no separate sound effects: **the pianist plays them into the rag**, in its key and tempo, then carries on from the next bar.
-  - 승리 · Win: 으뜸화음(1도) 쾅! 쾅! + 트럼펫 + 동전 소리 · tonic chord, BANG BANG, with trumpet and coins
-  - 블랙잭 · Blackjack: 트럼펫 팡파르 + 으뜸화음 + 동전 와르르 · trumpet fanfare up to a big tonic chord, a shower of coins
-  - 패배 · Lose: 불협화음 쾅! 쾅! · dissonant clusters, BANG BANG
+- **음악은 승패와 상관없이 끊기지 않고 계속 흐릅니다.** 결과 반응은 그 위에 지금 곡의 조성·빠르기에 맞춰 **작게** 얹힐 뿐입니다 · **The music never stops for a result.** Reactions are laid quietly over the rag, in its key and tempo.
+  - 승리 · Win: 으뜸화음(1도) 쾅 쾅 + 트럼펫 + 동전 짤랑 · tonic chord, bang bang, with trumpet and a few coins
+  - 블랙잭 · Blackjack: 트럼펫 팡파르 + 으뜸화음 + 동전 · trumpet fanfare up to a tonic chord, coins
+  - 패배 · Lose: 불협화음 쾅 쾅 · dissonant clusters, bang bang
   - 버스트 · Bust: 술병 깨지는 쨍그랑 + 아주 짧은 슬픈 트럼펫 가락 (단조) · a bottle smashing, then a very short sad trumpet tune, minor
   - 무승부 · Push: 반응 없이 연주 계속 · no reaction, the rag just keeps going
-  - 딜러 블랙잭으로 패배 · Dealer blackjack: 불협화음 와장창 → 잠깐 멈췄다가 새 곡 · a crashing cluster, a pause, then a new rag
+  - 딜러 블랙잭으로 패배 · Dealer blackjack: 불협화음 와장창 · a crashing cluster
 - 효과음 · Effects: 카드 놓기, 딜러 카드 뒤집기, 그리고 반응에 맞춰 동전·술병 소리 · the card landing, the hole card flipping, and the coins / bottle that ride along with the licks.
 - 음악 · Music: 낡은 홍키통키 피아노로 치는 **래그타임**. 16마디마다 조성·템포·코드 진행·멜로디를 **랜덤으로 새로 지어** 칩니다. 빠르고 경쾌한 2/4 박자(♩=110~130)에 통통 튀는 왼손 "쿵-짝" 옥타브 반주, 오른손 3+3+2 엇박 리듬과 반음 경과음, 5도권 코드 진행과 감7화음.
   **Ragtime** on a detuned honky-tonk piano; every 16 bars a **new random rag** (key, tempo, progression, melody): brisk 2/4 (♩=110–130), bouncy staccato oom-pah octave bass, 3+3+2 syncopation with chromatic pick-ups, circle-of-fifths and diminished chords.
