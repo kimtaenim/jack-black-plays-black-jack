@@ -51,6 +51,7 @@
       <span class="lose">패 <b id="score-lose">0</b></span>
       <span class="rate">승률 <b id="score-rate">–</b></span>
       <button class="score-reset" id="score-reset" type="button" aria-label="점수 초기화" title="점수 초기화">↺</button>
+      <button id="mute" type="button" aria-label="소리 켜기/끄기">sound <b class="on">O</b></button>
     </p>
 
     <main class="table">
@@ -68,7 +69,20 @@
 
     </main>
 
-    <!-- dealer reaction: pops up big near the top, then shrinks into the portrait (CSS animation).
+    <!-- asked on start: sound on or off (same interface as bosses-of-our-world) -->
+  <div id="sound-ask" role="dialog" aria-modal="true" aria-labelledby="sound-ask-q" hidden>
+    <div class="box">
+      <div class="icon">🔊</div>
+      <p id="sound-ask-q">게임 소리를 켤까요?</p>
+      <div class="btns">
+        <button type="button" data-sound="on">소리 켜기</button>
+        <button type="button" data-sound="off">소리 없이</button>
+      </div>
+      <small>점수 줄의 sound 버튼으로 언제든 바꿀 수 있어요</small>
+    </div>
+  </div>
+
+  <!-- dealer reaction: pops up big near the top, then shrinks into the portrait (CSS animation).
          Lives inside .app, one layer below the centre panel, so the panel always stays on top. -->
     <img class="reaction" id="reaction" alt="" aria-hidden="true" hidden />
 

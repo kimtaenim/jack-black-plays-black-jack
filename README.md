@@ -34,6 +34,18 @@ Jack Black의 이름 및 초상에 대한 어떠한 권리도 소유하지 않�
 - 딜러 카드는 작게, 내 카드는 남는 공간만큼 크게 보이며, 3장 이상이면 자동으로 겹칩니다.
   Dealer cards stay small, your cards take the remaining space, and they overlap automatically from three cards on.
 
+## 🔊 사운드 · Sound
+
+처음 들어오면 **"게임 소리를 켤까요?"** 를 묻고, 점수 줄의 **sound O / X** 버튼으로 언제든 켜고 끕니다 (bosses-of-our-world 와 같은 방식).
+On start the game asks whether to turn sound on; the **sound O / X** button on the score line toggles it any time (same interface as bosses-of-our-world).
+
+- 효과음과 음악 모두 Web Audio로 **즉석 합성**합니다. 음원 파일이 없어 저작권 걱정이 없습니다.
+  Effects and music are all **synthesized live** with Web Audio — no audio files, so no licensing concerns.
+- 효과음 · Effects: 카드 놓기, 딜러 카드 뒤집기, 블랙잭 팡파르, 승리 피아노, 패배 트롬본(와와와와~), 버스트 슬라이드 휘슬, 무승부 · card, flip, blackjack fanfare, win run, sad trombone, bust slide whistle, push.
+- 음악 · Music: 싸구려 홍키통키 살롱 피아노. 16마디마다 조성·템포·코드 진행·멜로디를 **랜덤으로 새로 지어** 칩니다. 결과 효과음이 나올 땐 잠깐 작아집니다.
+  Cheap honky-tonk saloon piano; every 16 bars a **new random tune** (key, tempo, progression, melody). It ducks under result sounds.
+- `?sound=1` / `?sound=0` 을 주소 끝에 붙이면 묻지 않고 바로 켜거나 끕니다 · Append `?sound=1` / `?sound=0` to skip the question.
+
 ## 🃏 블랙잭 엔진 · Blackjack engine (`src/engine.js`)
 
 DOM에 의존하지 않는 순수 JS 모듈이라 브라우저와 Node 양쪽에서 동작합니다.
@@ -141,6 +153,7 @@ index.html                  게임 화면 · game page (dealer, table, score, di
 style.css                   스타일, 모바일 우선 · styles, mobile-first
 src/engine.js               블랙잭 엔진 · blackjack engine (pure logic)
 src/main.js                 UI ↔ 엔진 연결, 카드 렌더링 · UI wiring and card rendering
+src/audio.js                효과음·음악 합성 · synthesized effects and music
 data/card-prompts.json      그림 프롬프트 · image prompts
 scripts/import-cards.mjs    올린 그림 정리 · shrink uploads to webp, rebuild the manifest
 scripts/make-guide.mjs      docs/IMAGE-GUIDE.md 생성 · builds the image guide

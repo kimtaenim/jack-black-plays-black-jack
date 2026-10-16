@@ -1,4 +1,5 @@
 import { BlackjackGame, PHASE, handValue } from './engine.js';
+import { Sound } from './audio.js';
 
 const SCORE_KEY = 'jbpbj.score.v1';
 const DISCLAIMER_KEY = 'jbpbj.disclaimer.v2';
@@ -387,6 +388,7 @@ const headline = (results) => results[0].outcome;
 
 function act(fn) {
   return () => {
+    const before = { phase: game.phase, p: game.hands[0]?.cards.length ?? 0, d: game.dealer.length };
     try {
       fn();
     } catch (err) {
@@ -398,8 +400,68 @@ function act(fn) {
       setMood(MOOD_AFTER[headline(game.results)]);
     }
     render();
+    playSounds(before);
   };
 }
+
+// ---------- sound ----------
+const sound = new Sound();
+window.__snd = sound; // for debugging in the console
+
+// One "card" sound per card that just landed, the hole card flipping, then the result.
+function playSounds(before) {
+  const newDeal = before.phase !== PHASE.PLAYER;
+  const p = game.hands[0].cards.length - (newDeal ? 0 : before.p);
+  const d = game.dealer.length - (newDeal ? 0 : before.d);
+  const settled = game.phase === PHASE.SETTLED;
+  let t = 0;
+  const at = (name, gap) => { setTimeout(() => sound.play(name), t); t += gap; };
+  if (newDeal) for (let i = 0; i < 4; i++) at('card', 120); // player, dealer, player, dealer
+  else for (let i = 0; i < p; i++) at('card', 120);
+  if (settled) {
+    at('flip', 140); // the dealer's hole card turns over
+    for (let i = newDeal ? 2 : 0; i < d; i++) at('card', 160); // dealer draws
+    at(headline(game.results), 0);
+  }
+}
+
+const mute = $('mute');
+// "sound O" (green) / "sound X" (red)
+function renderMute() {
+  const on = !sound.muted;
+  mute.innerHTML = `sound <b class="${on ? 'on' : 'off'}">${on ? 'O' : 'X'}</b>`;
+  mute.setAttribute('aria-pressed', on ? 'true' : 'false');
+}
+mute.addEventListener('click', () => {
+  sound.setMuted(!sound.muted);
+  renderMute();
+  if (!sound.muted) sound.ready().then(() => sound.play('on'));
+});
+
+// Ask once per visit, after the disclaimer (if it's showing). ?sound=1 / ?sound=0 skips the question.
+function askSound() {
+  const box = $('sound-ask');
+  const preset = new URLSearchParams(location.search).get('sound');
+  if (preset === '0' || preset === '1') return Promise.resolve(preset === '1');
+  box.hidden = false;
+  box.querySelector(`[data-sound="${sound.muted ? 'off' : 'on'}"]`).focus({ preventScroll: true });
+  return new Promise((resolve) => {
+    box.addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-sound]');
+      if (!b) return;
+      box.hidden = true;
+      resolve(b.dataset.sound === 'on');
+    });
+  });
+}
+function startSound() {
+  askSound().then((on) => {
+    sound.setMuted(!on);
+    renderMute();
+    if (on) sound.ready().then(() => sound.play('on'));
+  });
+}
+renderMute();
 
 const deal = act(() => {
   game.deal(1);
@@ -443,7 +505,12 @@ document.addEventListener('keydown', (e) => {
 // ---------- disclaimer ----------
 $('show-disclaimer').addEventListener('click', () => els.disclaimer.showModal());
 els.disclaimer.addEventListener('close', () => store.set(DISCLAIMER_KEY, '1'));
-if (store.get(DISCLAIMER_KEY) !== '1') els.disclaimer.showModal();
+if (store.get(DISCLAIMER_KEY) !== '1') {
+  els.disclaimer.showModal();
+  els.disclaimer.addEventListener('close', startSound, { once: true });
+} else {
+  startSound();
+}
 
 await loadArt();
 preloadArt();
