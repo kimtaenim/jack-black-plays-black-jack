@@ -424,7 +424,8 @@ function playSounds(before) {
     for (let i = newDeal ? 2 : 0; i < d; i++) at('card', 160); // dealer draws
     const kind = headline(game.results);
     const dealerBJ = kind === 'lose' && isBlackjack(game.dealer);
-    setTimeout(() => sound.react(dealerBJ ? 'dealerBJ' : kind), t);
+    // a push gets no reaction: the pianist just keeps playing
+    if (kind !== 'push') setTimeout(() => sound.react(dealerBJ ? 'dealerBJ' : kind), t);
   }
 }
 

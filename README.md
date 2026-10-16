@@ -46,7 +46,7 @@ On start the game asks whether to turn sound on; the **sound O / X** button on t
   - 블랙잭 · Blackjack: 트럼펫 팡파르 + 으뜸화음 + 동전 와르르 · trumpet fanfare up to a big tonic chord, a shower of coins
   - 패배 · Lose: 불협화음 쾅! 쾅! · dissonant clusters, BANG BANG
   - 버스트 · Bust: 술병 깨지는 쨍그랑 + 아주 짧은 슬픈 트럼펫 가락 (단조) · a bottle smashing, then a very short sad trumpet tune, minor
-  - 무승부 · Push: 풀리지 않는 불협화음 한 번 · one sour, unresolved chord
+  - 무승부 · Push: 반응 없이 연주 계속 · no reaction, the rag just keeps going
   - 딜러 블랙잭으로 패배 · Dealer blackjack: 불협화음 와장창 → 잠깐 멈췄다가 새 곡 · a crashing cluster, a pause, then a new rag
 - 효과음 · Effects: 카드 놓기, 딜러 카드 뒤집기, 그리고 반응에 맞춰 동전·술병 소리 · the card landing, the hole card flipping, and the coins / bottle that ride along with the licks.
 - 음악 · Music: 낡은 홍키통키 피아노로 치는 **래그타임**. 16마디마다 조성·템포·코드 진행·멜로디를 **랜덤으로 새로 지어** 칩니다. 빠르고 경쾌한 2/4 박자(♩=110~130)에 통통 튀는 왼손 "쿵-짝" 옥타브 반주, 오른손 3+3+2 엇박 리듬과 반음 경과음, 5도권 코드 진행과 감7화음.

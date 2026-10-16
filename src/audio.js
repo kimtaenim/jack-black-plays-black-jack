@@ -8,7 +8,7 @@
 // and tempo (react()), then carries on from the next bar.
 //   win        tonic chord, BANG BANG (+ trumpet)   blackjack  trumpet fanfare up to a big tonic chord
 //   lose       dissonant cluster, BANG BANG         bust       a very short sad trumpet tune, minor
-//   push       one sour, unresolved chord
+//   push       nothing: the rag just keeps going
 //   + a loud shower of coins on win / blackjack, and a bottle smashing on bust
 //   dealer blackjack  a crashing cluster, the piano stops for a moment, then a new rag
 //
@@ -282,7 +282,7 @@ export class Sound {
 
   // ---------- results, played into the music ----------
 
-  // kind: win | blackjack | lose | bust | push | dealerBJ
+  // kind: win | blackjack | lose | bust | dealerBJ
   react(kind) {
     if (this.muted || !this.ctx) return;
     if (this.ctx.state !== 'running') {
@@ -499,8 +499,6 @@ const LICKS = {
     [T(67 + k, 1.6, 0.18), ...H([36 + k, 48 + k], 6, 0.16)], [], [T(66 + k, 1.6, 0.18)], [], [T(65 + k, 1.6, 0.18)], [],
     [T(63 + k, 6, 0.2), ...H([36 + k, 55 + k, 60 + k, 63 + k], 6, 0.14)], [],
   ],
-  // one sour chord left hanging
-  push: (k) => [slam(k, 0, [0, 6, 11, 13], 6, 0.22), ...rests(7)],
   // dealer blackjack: a crash across the keyboard, the pianist stops, then starts a new rag
   dealerBJ: (k) => [
     [...slam(k, 0, SOUR, 3, 0.32), ...H([24 + k + 1, 84 + k + 1, 85 + k + 6], 3, 0.24)],
