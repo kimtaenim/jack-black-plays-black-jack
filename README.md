@@ -42,9 +42,10 @@ On start the game asks whether to turn sound on; the **sound O / X** button on t
 - 효과음과 음악 모두 Web Audio로 **즉석 합성**합니다. 음원 파일이 없어 저작권 걱정이 없습니다.
   Effects and music are all **synthesized live** with Web Audio — no audio files, so no licensing concerns.
 - 결과 반응은 따로 효과음을 내지 않고 **피아니스트가 곡 안에서 바로 쳐 줍니다** (지금 곡의 조성·빠르기 그대로, 끝나면 다음 마디부터 곡이 이어짐) · Results have no separate sound effects: **the pianist plays them into the rag**, in its key and tempo, then carries on from the next bar.
-  - 승리 · Win: 으뜸화음(1도) 쾅! 쾅! · tonic chord, BANG BANG
-  - 블랙잭 · Blackjack: 으뜸화음 팡파르 · fanfare up to a big tonic chord
-  - 패배·버스트 · Lose / bust: 불협화음 쾅! 쾅! (버스트는 반음씩 미끄러져 내려감) · dissonant clusters, BANG BANG (bust slides down)
+  - 승리 · Win: 으뜸화음(1도) 쾅! 쾅! + 트럼펫 · tonic chord, BANG BANG, with trumpet
+  - 블랙잭 · Blackjack: 트럼펫 팡파르 + 으뜸화음 · trumpet fanfare up to a big tonic chord
+  - 패배 · Lose: 불협화음 쾅! 쾅! · dissonant clusters, BANG BANG
+  - 버스트 · Bust: 아주 짧은 슬픈 트럼펫 가락 (단조) · a very short sad trumpet tune, minor
   - 무승부 · Push: 풀리지 않는 불협화음 한 번 · one sour, unresolved chord
   - 딜러 블랙잭으로 패배 · Dealer blackjack: 불협화음 와장창 → 잠깐 멈췄다가 새 곡 · a crashing cluster, a pause, then a new rag
 - 효과음 · Effects: 카드 놓기, 딜러 카드 뒤집기 정도만 · only the card landing and the hole card flipping.
