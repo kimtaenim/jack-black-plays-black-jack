@@ -9,6 +9,7 @@
 //   win        tonic chord, BANG BANG (+ trumpet)   blackjack  trumpet fanfare up to a big tonic chord
 //   lose       dissonant cluster, BANG BANG         bust       a very short sad trumpet tune, minor
 //   push       one sour, unresolved chord
+//   + a loud shower of coins on win / blackjack, and a bottle smashing on bust
 //   dealer blackjack  a crashing cluster, the piano stops for a moment, then a new rag
 //
 // Small table noises stay as effects:  card  (lands on the felt)  flip  (hole card)  tick  on
@@ -305,6 +306,14 @@ export class Sound {
       t.steps = t.steps.slice(0, at).concat(lick, pad, t.steps.slice(resume));
     }
     while (t.steps.length < at) t.steps.push([]);
+    // a few real noises ride along with the licks, landing on their beats
+    const startsIn = Math.max(0, this.next + (at - t.step) * t.sixteenth - this.t0);
+    const beat = (n) => startsIn + n * t.sixteenth;
+    try {
+      if (kind === 'win') coins(this, beat(2), 14, 0.9);
+      if (kind === 'blackjack') { coins(this, beat(4), 12, 0.9); coins(this, beat(16), 40, 2.2); }
+      if (kind === 'bust') smash(this, beat(0));
+    } catch { /* a failed noise is never fatal */ }
   }
 
   // ---------- music ----------
@@ -498,3 +507,36 @@ const LICKS = {
     [], [], slam(k, -1, SOURER, 8, 0.3), ...rests(18),
   ],
 };
+
+// ---------- coins and broken glass ----------
+
+// one metallic "ting": a few inharmonic partials that die away fast
+function ping(s, f, delay, dur, vol, ratios) {
+  for (const [r, lvl] of ratios) s.tone('sine', f * r, f * r * 0.995, dur * (1.2 - r / 12), vol * lvl, delay);
+}
+const COIN = [[1, 1], [2.76, 0.6], [5.4, 0.35], [8.93, 0.2]];
+const GLASS = [[1, 1], [1.47, 0.7], [2.31, 0.5], [3.9, 0.3]];
+
+// a shower of n coins spread over `spread` seconds, landing thicker at the start
+function coins(s, at, n, spread) {
+  for (let i = 0; i < n; i++) {
+    const d = at + spread * Math.pow(Math.random(), 1.6);
+    ping(s, 2200 + Math.random() * 2200, d, 0.18 + Math.random() * 0.2, 0.22, COIN);
+    s.noise(0.02, 0.18, 7000, d, 'highpass', 6000, 0.7); // the clink of the edge
+  }
+  // and they pile up with a jingle
+  s.noise(0.5, 0.12, 6500, at + spread * 0.4, 'bandpass', 4500, 2);
+}
+
+// a bottle smashing: a dull knock, a crack of noise, then shards of glass tinkling down
+function smash(s, at) {
+  s.tone('sine', 180, 60, 0.12, 0.45, at);
+  s.noise(0.06, 0.7, 3000, at, 'highpass', 1500, 0.5);
+  s.noise(0.45, 0.35, 5000, at + 0.02, 'bandpass', 2500, 0.6);
+  for (let i = 0; i < 26; i++) {
+    const d = at + 0.03 + 0.7 * Math.pow(Math.random(), 1.8);
+    const v = 0.24 * (1 - (d - at) / 0.9);
+    ping(s, 3200 + Math.random() * 4500, d, 0.06 + Math.random() * 0.14, v, GLASS);
+    if (i % 3 === 0) s.noise(0.03, v, 8000, d, 'highpass', 6000, 0.7);
+  }
+}
