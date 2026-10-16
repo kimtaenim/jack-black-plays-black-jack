@@ -1,4 +1,4 @@
-import { BlackjackGame, PHASE, handValue } from './engine.js';
+import { BlackjackGame, PHASE, handValue, isBlackjack } from './engine.js';
 import { Sound } from './audio.js';
 
 const SCORE_KEY = 'jbpbj.score.v1';
@@ -408,7 +408,8 @@ function act(fn) {
 const sound = new Sound();
 window.__snd = sound; // for debugging in the console
 
-// One "card" sound per card that just landed, the hole card flipping, then the result.
+// One "card" sound per card that just landed, the hole card flipping, then the result —
+// which the pianist plays into the ragtime (no separate result sound).
 function playSounds(before) {
   const newDeal = before.phase !== PHASE.PLAYER;
   const p = game.hands[0].cards.length - (newDeal ? 0 : before.p);
@@ -421,7 +422,9 @@ function playSounds(before) {
   if (settled) {
     at('flip', 140); // the dealer's hole card turns over
     for (let i = newDeal ? 2 : 0; i < d; i++) at('card', 160); // dealer draws
-    at(headline(game.results), 0);
+    const kind = headline(game.results);
+    const dealerBJ = kind === 'lose' && isBlackjack(game.dealer);
+    setTimeout(() => sound.react(dealerBJ ? 'dealerBJ' : kind), t);
   }
 }
 

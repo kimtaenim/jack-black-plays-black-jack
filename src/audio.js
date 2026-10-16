@@ -1,14 +1,16 @@
-// Sound: effects + cheap honky-tonk casino piano, all synthesized with Web Audio (no audio files).
+// Sound: cheap honky-tonk casino piano, all synthesized with Web Audio (no audio files).
 // The on/off interface and the mobile unlock tricks follow the bosses-of-our-world project.
-//
-//   card      a card slides onto the felt          flip   the dealer's hole card turns over
-//   tick      button tap                            on     "sound is on" confirmation
-//   blackjack fanfare + coin shower                 win    happy piano run
-//   lose      sad trombone "wah wah wah waaah"      bust   slide whistle down + thud
-//   push      shrug: two unresolved notes
 //
 // Music: ragtime made up on the spot. Every 16 bars a new random rag (key, tempo, progression
 // and melody) starts, played on a detuned "honky-tonk" piano.
+//
+// Results have no sound effects of their own: the pianist plays them into the rag, in its key
+// and tempo (react()), then carries on from the next bar.
+//   win        tonic chord, BANG BANG            blackjack  fanfare up to a big tonic chord
+//   lose/bust  dissonant cluster, BANG BANG      push       one sour, unresolved chord
+//   dealer blackjack  a crashing cluster, the piano stops for a moment, then a new rag
+//
+// Small table noises stay as effects:  card  (lands on the felt)  flip  (hole card)  tick  on
 
 const MUTE_KEY = 'jbpbj.muted';
 
@@ -151,6 +153,10 @@ export class Sound {
     tone.type = 'lowpass';
     tone.frequency.value = 3800;
     this.music.connect(tone).connect(comp);
+    // the result licks: same piano, played much harder than the background rag
+    this.hits = ctx.createGain();
+    this.hits.gain.value = HITS_VOL;
+    this.hits.connect(tone);
     this.poke();
     this.resume();
   }
@@ -168,8 +174,6 @@ export class Sound {
     this.last[name] = now;
     const fn = FX[name];
     if (!fn) return;
-    // results get the spotlight: the music steps back for a moment
-    if (DUCK[name]) this.duck(DUCK[name]);
     try { fn(this); } catch { /* a failed synth sound is never fatal */ }
   }
 
@@ -237,15 +241,32 @@ export class Sound {
     }
   }
 
-  duck(ms) {
-    if (!this.music) return;
-    const t = this.ctx.currentTime;
-    const p = this.music.gain;
-    p.cancelScheduledValues(t);
-    p.setValueAtTime(p.value, t);
-    p.linearRampToValueAtTime(MUSIC_VOL * 0.25, t + 0.08);
-    p.setValueAtTime(MUSIC_VOL * 0.25, t + ms / 1000);
-    p.linearRampToValueAtTime(MUSIC_VOL, t + ms / 1000 + 0.6);
+  // ---------- results, played into the music ----------
+
+  // kind: win | blackjack | lose | bust | push | dealerBJ
+  react(kind) {
+    if (this.muted || !this.ctx) return;
+    if (this.ctx.state !== 'running') {
+      this.resume().then(() => { if (this.ctx && this.ctx.state === 'running') this.react(kind); });
+      return;
+    }
+    if (!this.musicTimer) this.startMusic();
+    if (!this.tune || this.tune.step >= this.tune.steps.length) this.tune = makeTune();
+    const t = this.tune;
+    // come in on the next eighth note
+    const at = t.step + (t.step % 2);
+    const lick = LICKS[kind]?.(t.key);
+    if (!lick) return;
+    if (kind === 'dealerBJ') {
+      // crash, silence, then a brand-new rag
+      t.steps = t.steps.slice(0, at).concat(lick);
+    } else {
+      // after the lick, pick the rag up again at the start of the next bar
+      const resume = Math.ceil((at + lick.length) / 8) * 8;
+      const pad = Array.from({ length: resume - at - lick.length }, () => []);
+      t.steps = t.steps.slice(0, at).concat(lick, pad, t.steps.slice(resume));
+    }
+    while (t.steps.length < at) t.steps.push([]);
   }
 
   // ---------- music ----------
@@ -270,7 +291,7 @@ export class Sound {
     while (this.next < this.ctx.currentTime + 0.4) {
       if (!this.tune || this.tune.step >= this.tune.steps.length) this.tune = makeTune();
       const { steps, step, sixteenth } = this.tune;
-      for (const [midi, len, vol] of steps[step]) this.piano(midi, this.next, len * sixteenth * 1.5, vol, this.music);
+      for (const [midi, len, vol, hit] of steps[step]) this.piano(midi, this.next, len * sixteenth * 1.5, vol, hit ? this.hits : this.music);
       // ragtime is played straight (no swing): every sixteenth the same length
       this.next += sixteenth;
       this.tune.step++;
@@ -279,7 +300,7 @@ export class Sound {
 }
 
 const MUSIC_VOL = 0.22;
-const DUCK = { blackjack: 2200, win: 1500, lose: 1800, bust: 1500, push: 900 };
+const HITS_VOL = 0.6;
 
 // ---------- effect recipes ----------
 
@@ -299,72 +320,10 @@ const FX = {
   on(s) {
     tune(s, [[72, 0], [76, 0.08], [79, 0.16]], 0.5, 0.22);
   },
-  // happy honky-tonk run up + a chord
-  win(s) {
-    tune(s, [[67, 0], [69, 0.07], [71, 0.14], [72, 0.21], [76, 0.28], [79, 0.35]], 0.5, 0.26);
-    chord(s, [72, 76, 79, 84], 0.46, 1.1, 0.2);
-  },
-  // fanfare + coins
-  blackjack(s) {
-    const tr = (m, d, len) => s.tone('sawtooth', hz(m), hz(m) * 1.003, len, 0.13, d);
-    tr(67, 0, 0.14); tr(72, 0.14, 0.14); tr(76, 0.28, 0.14); tr(79, 0.42, 0.5); tr(76, 0.66, 0.12); tr(79, 0.8, 0.7);
-    chord(s, [60, 67, 72, 76, 79], 0.8, 1.4, 0.18);
-    for (let i = 0; i < 14; i++) {
-      const d = 0.5 + i * 0.07 + Math.random() * 0.03;
-      s.tone('sine', 2600 + Math.random() * 1400, 2400, 0.12, 0.09, d);
-      s.tone('sine', 3900 + Math.random() * 900, 3600, 0.08, 0.05, d + 0.01);
-    }
-  },
-  // sad trombone: wah wah wah waaah (wobbly, sliding down)
-  lose(s) {
-    const ctx = s.ctx;
-    const notes = [[62, 0, 0.32], [61, 0.36, 0.32], [60, 0.72, 0.32], [59, 1.08, 0.9]];
-    for (const [m, d, len] of notes) {
-      const t = s.t0 + d;
-      const o = ctx.createOscillator();
-      const f = ctx.createBiquadFilter();
-      const g = ctx.createGain();
-      const vib = ctx.createOscillator();
-      const vg = ctx.createGain();
-      o.type = 'sawtooth';
-      o.frequency.setValueAtTime(hz(m - 12), t);
-      if (len > 0.5) o.frequency.linearRampToValueAtTime(hz(m - 13), t + len);
-      vib.frequency.value = len > 0.5 ? 6 : 0;
-      vg.gain.value = hz(m - 12) * 0.02;
-      vib.connect(vg).connect(o.frequency);
-      f.type = 'lowpass';
-      f.frequency.setValueAtTime(500, t);
-      f.frequency.linearRampToValueAtTime(1300, t + 0.08);
-      f.frequency.linearRampToValueAtTime(600, t + len);
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.28, t + 0.05);
-      g.gain.setValueAtTime(0.24, t + len * 0.7);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + len);
-      o.connect(f).connect(g).connect(s.fx);
-      o.start(t); vib.start(t);
-      o.stop(t + len + 0.05); vib.stop(t + len + 0.05);
-    }
-  },
-  // slide whistle falling + a thud
-  bust(s) {
-    s.tone('sine', 1800, 220, 0.75, 0.22);
-    s.tone('sine', 3600, 440, 0.75, 0.05);
-    s.tone('sine', 120, 45, 0.25, 0.4, 0.72);
-    s.noise(0.2, 0.25, 300, 0.72, 'lowpass', 120);
-  },
-  // shrug: "hm-hm?"
-  push(s) {
-    tune(s, [[67, 0], [66, 0.18]], 0.35, 0.22);
-    chord(s, [60, 66, 69], 0.36, 0.6, 0.12);
-  },
 };
 
-const hz = (m) => 440 * Math.pow(2, (m - 69) / 12);
 function tune(s, notes, len, vol) {
   for (const [m, d] of notes) s.piano(m, s.t0 + d, len, vol, s.fx);
-}
-function chord(s, notes, delay, len, vol) {
-  for (const m of notes) s.piano(m, s.t0 + delay, len, vol / Math.sqrt(notes.length) * 1.6, s.fx);
 }
 
 // ---------- random ragtime ----------
@@ -454,5 +413,42 @@ function makeTune() {
   // end the strain on a held tonic chord before the next rag starts
   steps.push([[36 + key, 3, 0.26], [60 + key, 3, 0.14], [64 + key, 3, 0.14], [67 + key, 3, 0.14], [72 + key, 3, 0.2]]);
   for (let i = 0; i < 3; i++) steps.push([]);
-  return { steps, step: 0, sixteenth };
+  return { steps, step: 0, sixteenth, key };
 }
+
+// ---------- result licks ----------
+// Each lick is a list of sixteenth-note steps like the rag's, in the rag's key (k = tonic pitch class).
+// Notes are [midi, length in sixteenths, volume, hit] — hit routes them to the louder "hits" bus.
+const H = (notes, len, vol) => notes.map((m) => [m, len, vol, true]);
+const rests = (n) => Array.from({ length: n }, () => []);
+// a big two-handed chord: octave bass + the chord spread over the right hand
+const slam = (k, low, rh, len, vol) => H([36 + k + low, 48 + k + low, ...rh.map((x) => 60 + k + x)], len, vol);
+const TONIC = [0, 4, 7, 12, 16, 19]; // C E G C' E' G'
+// dissonant clusters: minor seconds and a tritone fighting each other
+const SOUR = [0, 1, 6, 11, 13, 18];
+const SOURER = [-1, 0, 5, 6, 10, 11];
+
+const LICKS = {
+  // tonic chord: BANG . BANG ———
+  win: (k) => [slam(k, 0, TONIC, 1.5, 0.3), [], slam(k, 0, TONIC, 6, 0.32), ...rests(5)],
+  // fanfare: G G G C | E . G . | big C ———
+  blackjack: (k) => [
+    H([67 + k, 64 + k], 0.8, 0.3), [], H([67 + k, 64 + k], 0.8, 0.3), H([67 + k, 64 + k], 0.8, 0.3),
+    slam(k, 0, [0, 4, 12], 3, 0.3), [], [], [],
+    H([76 + k, 72 + k], 1.6, 0.3), [], H([79 + k, 76 + k], 1.6, 0.32), [],
+    H([84 + k, 79 + k, 76 + k], 1.6, 0.32), [], [], [],
+    slam(k, 0, [...TONIC, 24], 10, 0.32), [], H([84 + k], 1, 0.22), H([88 + k], 1, 0.22),
+    H([91 + k], 1, 0.22), H([96 + k], 6, 0.24), ...rests(10),
+  ],
+  // dissonant cluster: BANG . BANG ———
+  lose: (k) => [slam(k, 0, SOUR, 1.5, 0.28), [], slam(k, -1, SOURER, 6, 0.3), ...rests(5)],
+  // the same, sliding down a semitone each time
+  bust: (k) => [slam(k, 0, SOUR, 1.2, 0.28), [], slam(k, -1, SOURER, 1.2, 0.28), [], slam(k, -2, SOUR.map((x) => x - 2), 6, 0.3), ...rests(3)],
+  // one sour chord left hanging
+  push: (k) => [slam(k, 0, [0, 6, 11, 13], 6, 0.22), ...rests(7)],
+  // dealer blackjack: a crash across the keyboard, the pianist stops, then starts a new rag
+  dealerBJ: (k) => [
+    [...slam(k, 0, SOUR, 3, 0.32), ...H([24 + k + 1, 84 + k + 1, 85 + k + 6], 3, 0.24)],
+    [], [], slam(k, -1, SOURER, 8, 0.3), ...rests(18),
+  ],
+};
