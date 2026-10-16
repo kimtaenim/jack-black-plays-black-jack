@@ -368,7 +368,7 @@ function chord(s, notes, delay, len, vol) {
 }
 
 // ---------- random ragtime ----------
-// A 16-bar strain in 2/4 march time, played straight on a sixteenth-note grid (8 sixteenths per bar):
+// A 16-bar strain in brisk 2/4 (♩=110–130), played straight on a sixteenth-note grid (8 sixteenths per bar):
 //   left hand  "oom-pah": octave bass on beats 1 and 2, chord on the off-beats, bass alternating root / fifth
 //   right hand syncopated cells (the classic 3+3+2 sixteenths), chord tones with chromatic
 //              pick-ups from a semitone below, often doubled a third or sixth underneath
@@ -392,21 +392,23 @@ const CELLS = [
   [0, 3, 6],          // 3+3+2: the ragtime "tresillo" push
   [0, 2, 3, 5, 6],    // short-long syncopation
   [1, 3, 4, 6],       // off-beat start
-  [0, 2, 4, 6],       // even eighths (cadences, breathing room)
   [0, 1, 2, 3, 4, 6], // running sixteenths into a push
   [0, 3, 4, 7],       // tied over the beat
+  [0, 1, 3, 4, 6, 7], // bouncy double pushes
+  [0, 2, 3, 4, 6, 7], // busy syncopation
 ];
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
 function makeTune() {
   const key = pick([0, 5, 7, 3, 10]); // C F G E♭ B♭ — the keys rags were written in
-  const bpm = 84 + Math.floor(Math.random() * 22); // quarter note; a march, "not fast"
+  const bpm = 110 + Math.floor(Math.random() * 20); // quarter note; a bright, bouncy two-step
   const sixteenth = 60 / bpm / 4;
   const strain = pick(STRAINS);
   // one or two rhythm cells become this rag's motif and keep coming back
-  const motif = [pick(CELLS), pick(CELLS)];
+  const busy = CELLS.filter((c) => c.length >= 4);
+  const motif = [pick(CELLS), pick(busy)];
   const steps = [];
-  let mel = 74 + key; // right hand starts around D5
+  let mel = 76 + key; // right hand starts around E5
   strain.forEach((deg, bar) => {
     const ch = CHORDS[deg];
     const rootPc = ch[0] % 12;
@@ -416,38 +418,41 @@ function makeTune() {
     const pool = [];
     for (const pc of ch) for (const o of [60, 72, 84]) {
       const m = o + ((key + pc) % 12);
-      if (m >= 67 && m <= 91) pool.push(m);
+      if (m >= 69 && m <= 93) pool.push(m);
     }
     const lhChord = ch.slice(0, 3).map((pc) => 55 + ((key + pc - 7 + 24) % 12)); // around G3–F#4
     const cadence = bar % 4 === 3;
-    const cell = cadence ? pick([CELLS[3], [0, 4]]) : Math.random() < 0.7 ? motif[bar % 2] : pick(CELLS);
+    const cell = cadence ? pick([[0, 2, 3, 5, 6], [0, 3, 6], [0, 2, 4, 6, 7]]) : Math.random() < 0.7 ? motif[bar % 2] : pick(CELLS);
     for (let i = 0; i < 8; i++) {
       const notes = [];
       // left hand: oom (octave bass) on the beats, pah (chord) on the off-beats
-      if (i === 0) notes.push([lowRoot, 3, 0.26], [lowRoot + 12, 3, 0.14]);
-      if (i === 4) notes.push([bar % 2 ? lowRoot : fifth, 3, 0.24], [(bar % 2 ? lowRoot : fifth) + 12, 3, 0.12]);
-      if (i === 2 || i === 6) for (const m of lhChord) notes.push([m, 1.6, 0.1]);
+      // short and springy (staccato) so it bounces
+      if (i === 0) notes.push([lowRoot, 1.4, 0.27], [lowRoot + 12, 1.4, 0.15]);
+      if (i === 4) notes.push([bar % 2 ? lowRoot : fifth, 1.4, 0.25], [(bar % 2 ? lowRoot : fifth) + 12, 1.4, 0.13]);
+      if (i === 2 || i === 6) for (const m of lhChord) notes.push([m, 0.7, 0.11]);
       // right hand
       if (cell.includes(i)) {
         const near = pool.filter((m) => m !== mel && Math.abs(m - mel) <= 5);
         let m = near.length ? pick(near) : pool.reduce((a, b) => (Math.abs(b - mel) < Math.abs(a - mel) ? b : a));
         // chromatic pick-up: hit the semitone below on the previous sixteenth
-        if (i > 0 && !cell.includes(i - 1) && Math.random() < 0.3) steps[steps.length - 1].push([m - 1, 0.8, 0.16]);
+        if (i > 0 && !cell.includes(i - 1) && Math.random() < 0.45) steps[steps.length - 1].push([m - 1, 0.8, 0.16]);
         mel = m;
-        const accent = i === 3 || i === 6 ? 0.06 : 0; // lean on the syncopated push
+        const accent = i === 3 || i === 6 ? 0.08 : 0; // lean on the syncopated push
         const next = cell.find((x) => x > i) ?? 8;
-        notes.push([m, Math.min(3, next - i) + 0.4, 0.2 + accent]);
+        notes.push([m, Math.min(2, next - i) * 0.75, 0.2 + accent]); // detached, sparkly
+        // now and then the right hand jumps to octaves for extra sparkle
+        if (accent && Math.random() < 0.35 && m + 12 <= 98) notes.push([m + 12, 1, 0.1]);
         // thicken with a third or sixth below, very ragtime
         if (Math.random() < 0.45) {
           const below = pool.filter((x) => x < m && m - x >= 3 && m - x <= 9);
-          if (below.length) notes.push([below[below.length - 1], 1.5, 0.12]);
+          if (below.length) notes.push([below[below.length - 1], 1, 0.12]);
         }
       }
       steps.push(notes);
     }
   });
   // end the strain on a held tonic chord before the next rag starts
-  steps.push([[36 + key, 6, 0.26], [60 + key, 6, 0.14], [64 + key, 6, 0.14], [67 + key, 6, 0.14], [72 + key, 6, 0.2]]);
-  for (let i = 0; i < 7; i++) steps.push([]);
+  steps.push([[36 + key, 3, 0.26], [60 + key, 3, 0.14], [64 + key, 3, 0.14], [67 + key, 3, 0.14], [72 + key, 3, 0.2]]);
+  for (let i = 0; i < 3; i++) steps.push([]);
   return { steps, step: 0, sixteenth };
 }
