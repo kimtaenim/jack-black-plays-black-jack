@@ -42,8 +42,8 @@ On start the game asks whether to turn sound on; the **sound O / X** button on t
 - 효과음과 음악 모두 Web Audio로 **즉석 합성**합니다. 음원 파일이 없어 저작권 걱정이 없습니다.
   Effects and music are all **synthesized live** with Web Audio — no audio files, so no licensing concerns.
 - 효과음 · Effects: 카드 놓기, 딜러 카드 뒤집기, 블랙잭 팡파르, 승리 피아노, 패배 트롬본(와와와와~), 버스트 슬라이드 휘슬, 무승부 · card, flip, blackjack fanfare, win run, sad trombone, bust slide whistle, push.
-- 음악 · Music: 낡은 홍키통키 피아노로 치는 **래그타임**. 16마디마다 조성·템포·코드 진행·멜로디를 **랜덤으로 새로 지어** 칩니다. 2/4 행진곡 박자에 왼손 "쿵-짝" 옥타브 반주, 오른손 3+3+2 엇박 리듬과 반음 경과음, 5도권 코드 진행과 감7화음. 결과 효과음이 나올 땐 잠깐 작아집니다.
-  **Ragtime** on a detuned honky-tonk piano; every 16 bars a **new random rag** (key, tempo, progression, melody): 2/4 march time, oom-pah octave bass, 3+3+2 syncopation with chromatic pick-ups, circle-of-fifths and diminished chords. It ducks under result sounds.
+- 음악 · Music: 낡은 홍키통키 피아노로 치는 **래그타임**. 16마디마다 조성·템포·코드 진행·멜로디를 **랜덤으로 새로 지어** 칩니다. 빠르고 경쾌한 2/4 박자(♩=110~130)에 통통 튀는 왼손 "쿵-짝" 옥타브 반주, 오른손 3+3+2 엇박 리듬과 반음 경과음, 5도권 코드 진행과 감7화음. 결과 효과음이 나올 땐 잠깐 작아집니다.
+  **Ragtime** on a detuned honky-tonk piano; every 16 bars a **new random rag** (key, tempo, progression, melody): brisk 2/4 (♩=110–130), bouncy staccato oom-pah octave bass, 3+3+2 syncopation with chromatic pick-ups, circle-of-fifths and diminished chords. It ducks under result sounds.
 - `?sound=1` / `?sound=0` 을 주소 끝에 붙이면 묻지 않고 바로 켜거나 끕니다 · Append `?sound=1` / `?sound=0` to skip the question.
 
 ## 🃏 블랙잭 엔진 · Blackjack engine (`src/engine.js`)
